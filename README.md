@@ -211,3 +211,110 @@ docker exec -it mosquitto-broker mosquitto_sub -t "home/#"
 | **빈 파일 생성**       | `type nul > config\passwd`                     | `touch config/passwd`                       |
 | **컨테이너 내부 경로** | `/mosquitto/config/passwd` (그대로 사용)       | `//mosquitto/config/passwd` (`//` 2개 필수) |
 | **JSON 인자 따옴표**   | `"{\"key\": \"value\"}"` (큰따옴표 이스케이프) | `'{"key": "value"}'` (작은따옴표)           |
+
+---
+
+## 7. 스마트홈 전력 데이터 시뮬레이터 (`simulator.py`)
+
+스마트홈 내 각 가구 및 가전기기의 실시간 소비 전력(W)을 모사하여 Mosquitto MQTT 브로커로 실시간 발행(Publish)하는 Python 프로그램입니다.
+
+### (1) 시뮬레이션 사양
+- **대상 가구**: `H001`, `H002`, `H003` (확장 가능)
+- **대상 가전 (6종)**:
+  - 냉장고 (`fridge`), TV (`tv`), 에어컨 (`aircon`), 세탁기 (`washing_machine`), 전자레인지 (`microwave`), 조명 (`lights`)
+- **특징**:
+  - 기기별 대기 전력(Standby) 및 가동 전력(Active) 모델링
+  - ON/OFF 상태 전이 확률 및 가우시안 노이즈 기반 실시간 전력값 생성
+- **발행 토픽 규칙**: `v1/power/sim/{house}/{device}` (예: `v1/power/sim/H001/tv`)
+- **전송 메시지 스키마 (JSON)**:
+  ```json
+  {
+    "house": "H001",
+    "device": "tv",
+    "ts": "2026-09-01T07:05:38.042Z",
+    "power_w": 112.35
+  }
+  ```
+
+### (2) 시뮬레이터 환경 구축 및 실행 방법
+
+1. **Python 가상환경 생성 (최초 1회)**
+   ```bash
+   python -m venv venv
+   ```
+
+2. **가상환경 활성화**
+   - **Git Bash**:
+     ```bash
+     source venv/Scripts/activate
+     ```
+   - **PowerShell**:
+     ```powershell
+     .\venv\Scripts\Activate.ps1
+     ```
+   - **Windows CMD**:
+     ```cmd
+     venv\Scripts\activate.bat
+     ```
+
+3. **필수 라이브러리(`paho-mqtt`) 설치**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *(또는 `pip install paho-mqtt`)*
+
+4. **시뮬레이터 구동**
+   ```bash
+   python simulator.py
+   ```
+   *1초 주기로 3개 가구 × 6개 기기(총 18건)의 전력 데이터가 브로커로 연속 발행됩니다. (종료: `Ctrl + C`)*
+
+### (3) 시뮬레이터 데이터 실시간 수신 검증 (구독 테스트)
+별도의 터미널 창에서 아래 명령어를 실행하여 시뮬레이터가 보낸 데이터가 실시간으로 들어오는지 확인합니다:
+```cmd
+docker exec -it mosquitto-broker mosquitto_sub -t "v1/power/sim/#" -u "kafka_bridge_user" -P "test1234" -v
+```
+
+---
+
+## 8. 현재 구축된 데이터 흐름 (Data Flow)
+
+현재 단계에서 구현 및 검증이 완료된 IoT 데이터 수집 흐름입니다.
+
+```text
++-------------------------------------------------------------+
+|  1. 데이터 생성 (Edge / Simulator)                          |
+|  - Python 시뮬레이터 (simulator.py)                         |
+|  - 가구(H001~H003) 6종 가전 전력 데이터 JSON 생성           |
++-------------------------------------------------------------+
+                              │
+                              │ MQTT Publish (QoS 1, Port 1883)
+                              │ Auth: simulator_user
+                              ▼
++-------------------------------------------------------------+
+|  2. 메시지 수집 및 중계 (Broker Ingestion)                  |
+|  - Mosquitto MQTT v2 Broker (Docker)                        |
+|  - Topic: v1/power/sim/{house}/{device}                     |
+|  - 익명 차단 및 계정 기반 인증 라우팅                       |
++-------------------------------------------------------------+
+                              │
+                              │ MQTT Subscribe (QoS 1)
+                              │ Auth: kafka_bridge_user
+                              ▼
++-------------------------------------------------------------+
+|  3. 데이터 수신 및 검증 (Consumer / Pipeline Endpoint)      |
+|  - 토픽(v1/power/sim/#) 구독자                              |
+|  - 실시간 전력 데이터 수신 확인 완료                        |
++-------------------------------------------------------------+
+```
+
+### 단계별 상세 명세
+
+| 단계 | 구분 | 구성 요소 | 상세 내용 |
+| :--- | :--- | :--- | :--- |
+| **Step 1** | **발행 (Publish)** | `simulator.py` (Python 3) | 가구별 6종 가전의 전력값(W)을 1초 주기로 JSON 직렬화하여 발행 |
+| **Step 2** | **수집 (Broker)** | `mosquitto-broker` (Docker) | `v1/power/sim/{house}/{device}` 토픽으로 수신 및 인메모리 라우팅 |
+| **Step 3** | **구독 (Subscribe)** | CLI / 파이프라인 수신단 | `v1/power/sim/#` 토픽을 구독하여 실시간 데이터 수신 및 검증 |
+
+
+
