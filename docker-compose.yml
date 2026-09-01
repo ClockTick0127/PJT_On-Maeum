@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./config/passwd:/mosquitto/config/passwd  # 핵심: 비밀번호 파일 매핑
+      # data 볼륨 제거 완료
+    restart: unless-stopped
