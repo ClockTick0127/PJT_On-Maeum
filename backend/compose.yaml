@@ -1,0 +1,50 @@
+name: nilm-backend
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    container_name: nilm-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      IOT_DEVICE_SERVICE_URL: http://iot-device-service:8081
+      MONITORING_SERVICE_URL: http://monitoring-service:8082
+      APP_SECURITY_ENABLED: "true"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:-http://localhost:8090/realms/nilm}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+    depends_on:
+      - iot-device-service
+      - monitoring-service
+
+  iot-device-service:
+    build: ./iot-device-service
+    container_name: nilm-iot-device
+    ports:
+      - "8081:8081"
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/device_db
+      POSTGRES_USERNAME: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_SECURITY_ENABLED: "true"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:-http://localhost:8090/realms/nilm}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+
+
+  monitoring-service:
+    build: ./monitoring-service
+    container_name: nilm-monitoring
+    ports:
+      - "8082:8082"
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/monitoring_db
+      POSTGRES_USERNAME: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_SECURITY_ENABLED: "true"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:-http://localhost:8090/realms/nilm}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+
+networks:
+  default:
+    external: true
+    name: nilm-net

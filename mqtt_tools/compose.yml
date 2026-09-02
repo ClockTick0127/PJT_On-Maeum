@@ -1,4 +1,4 @@
-version: '3.8'
+name: nilm-mqtt
 
 services:
   mosquitto:
@@ -8,6 +8,10 @@ services:
       - "1883:1883"
     volumes:
       - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./config/passwd:/mosquitto/config/passwd  # 핵심: 비밀번호 파일 매핑
-      # data 볼륨 제거 완료
+      - ./config/passwd:/mosquitto/config/passwd
     restart: unless-stopped
+
+networks:
+  default:
+    external: true
+    name: nilm-net
