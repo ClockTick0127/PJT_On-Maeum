@@ -1,0 +1,465 @@
+<title>NILM EDA & 방법론</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f6f8f7; --surface: #ffffff; --surface-2: #eef2f0;
+    --ink: #14201c; --ink-2: #51625c; --muted: #7d8c86;
+    --hairline: #dde4e1; --accent: #0b5d4e; --accent-soft: #e2efeb;
+    --good: #0ca30c; --good-text: #006300; --critical: #d03b3b;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --seq: #2a78d6; --gray-pt: #898781;
+    --grid: #e1e0d9; --chart-surface: #fcfcfb; --code-bg: #eef2f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1413; --surface: #171d1b; --surface-2: #1e2624;
+      --ink: #e9efec; --ink-2: #a8b6b1; --muted: #7d8c86;
+      --hairline: #26302d; --accent: #45c3a4; --accent-soft: #17342d;
+      --good: #0ca30c; --good-text: #4ec54e; --critical: #e66767;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --seq: #3987e5; --gray-pt: #898781;
+      --grid: #2c2c2a; --chart-surface: #1a1a19; --code-bg: #1e2624;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1413; --surface: #171d1b; --surface-2: #1e2624;
+    --ink: #e9efec; --ink-2: #a8b6b1; --muted: #7d8c86;
+    --hairline: #26302d; --accent: #45c3a4; --accent-soft: #17342d;
+    --good: #0ca30c; --good-text: #4ec54e; --critical: #e66767;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --seq: #3987e5; --gray-pt: #898781;
+    --grid: #2c2c2a; --chart-surface: #1a1a19; --code-bg: #1e2624;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif; line-height: 1.75; margin: 0; font-size: 16px; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px 96px; }
+  .prose { max-width: 720px; }
+  header { padding: 64px 0 0; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; letter-spacing: -.01em; line-height: 1.25; margin: 10px 0 8px; text-wrap: balance; }
+  .subtitle { color: var(--ink-2); font-size: 17px; max-width: 660px; margin: 0 0 20px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--hairline); border-radius: 999px; padding: 3px 12px; }
+  .verdict { background: var(--surface); border: 1px solid var(--hairline); border-top: 3px solid var(--accent); border-radius: 14px; padding: 28px; margin: 8px 0; }
+  .verdict-label { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+  .verdict h2 { margin: 8px 0 6px; font-size: 22px; line-height: 1.45; border: 0; padding: 0; }
+  .verdict p { margin: 0; color: var(--ink-2); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 22px; }
+  .tile { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; }
+  .tile .num { font-family: "IBM Plex Mono", monospace; font-size: 22px; font-weight: 600; line-height: 1.3; }
+  .tile .num em { font-style: normal; color: var(--accent); }
+  .tile .cap { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  section { margin-top: 64px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--hairline); padding-bottom: 10px; margin-bottom: 22px; }
+  .sec-no { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-size: 23px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+  h3 { font-size: 17px; font-weight: 700; margin: 30px 0 8px; }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface); margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+  td.best { color: var(--good-text); font-weight: 600; }
+  .callout { background: var(--surface); border: 1px solid var(--hairline); border-left: 3px solid var(--accent); border-radius: 10px; padding: 16px 20px; margin: 18px 0; font-size: 15px; }
+  .callout.warn { border-left-color: var(--critical); }
+  .callout b.title { display: block; margin-bottom: 4px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: var(--code-bg); border-radius: 5px; padding: 1.5px 6px; }
+  .fig { background: var(--chart-surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 22px 22px 16px; margin: 20px 0; }
+  .fig-title { font-weight: 700; font-size: 15.5px; margin: 0 0 2px; }
+  .fig-sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .fig svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .chartnote { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+  .tip { position: fixed; pointer-events: none; z-index: 50; display: none; background: var(--ink); color: var(--bg); font-family: "IBM Plex Mono", monospace; font-size: 12px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; }
+  .insights { display: grid; gap: 14px; }
+  .insight { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px 24px; }
+  .insight b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .insight p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .reco { background: var(--accent-soft); border: 1px solid var(--hairline); border-radius: 12px; padding: 22px 26px; margin: 18px 0; }
+  .reco b.head { display: block; font-size: 17px; color: var(--accent); margin-bottom: 6px; }
+  footer { margin-top: 80px; border-top: 1px solid var(--hairline); padding-top: 20px; color: var(--muted); font-size: 13.5px; }
+  @media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, 1fr); } th, td { padding: 8px 10px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .verdict, section { animation: rise .5s ease-out both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+
+  .errata { background: var(--surface); border: 1px solid var(--hairline); border-left: 4px solid var(--critical); border-radius: 12px; padding: 18px 22px; margin: 28px 0 0; font-size: 14.5px; line-height: 1.7; }
+  .errata b.t { display: block; color: var(--critical); font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+  .errata ul { margin: 6px 0 0; padding-left: 18px; }
+</style>
+
+<div class="wrap">
+<div class="errata"><b class="t">정정 공지 · 2026-09-02 (외부 검수 0901·0902 반영)</b>
+EDA의 데이터 관찰(미계측 부하, 가전 시그니처, 야간 사용률 구분자, 30Hz 파형)은 유효합니다. 다음은 해석을 제한합니다.
+<ul>
+<li><b>TCN 선정</b>은 H029 2가전 비교에 기반한 제한적 근거. 모델 구조보다 <b>cross-house 일반화와 평가 정의</b>가 우선 과제(0901 검수).</li>
+<li>§05 아키텍처 비교의 이벤트 P/R은 구 매칭 기준(30% 겹침, 중복 계산 가능). 재검산 기준은 1:1 매칭(<code>scripts/eval_v2.py</code>).</li>
+<li>"안부 신호 랭킹"은 <b>활동 대리지표 후보</b>의 순위이며 서비스(재실·안부) 검증이 아님. 시각 루틴 판단은 31일 데이터 기준으로 단정하지 않음.</li>
+<li>권고안의 알림 규칙(일 단위·다일 연속)은 초기 기획 "수 시간 내 감지" 대비 후퇴이며 <b>미확정</b>. 시간대·rolling 24/48h 규칙과 함께 비교 대상.</li>
+<li>Validation 16가구는 EDA·모델 선정에 전부 사용되어 <b>legacy 개발 세트</b>. 이 페이지의 모든 수치는 개발 결과.</li>
+</ul></div>
+
+<header>
+  <div class="eyebrow">NILM · 고독사 위험 가구 전력 모니터링 프로젝트</div>
+  <h1>NILM EDA &amp; 방법론</h1>
+  <p class="subtitle">Validation set 전체(16가구 × 31일 × 131채널)의 탐색 분석과,
+     프로젝트 규모에 맞는 모델 방법론 선정 — Seq2Point를 포함한 4개 아키텍처 실측 비교로 결정.</p>
+  <div class="meta-row">
+    <span class="chip">2026-08-28</span>
+    <span class="chip">16가구 · 131채널 · 4,061 채널-일</span>
+    <span class="chip">30Hz 원본 769GB → 1Hz 캐시 스트리밍</span>
+    <span class="chip">아키텍처 4종 동일조건 비교</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="verdict-label">핵심 결론</div>
+  <h2>안부 신호는 "전자레인지·헤어드라이기·청소기·포트", 모델은 TCN 분류형</h2>
+  <p>기획의 가설(포트·밥솥·전자레인지 1순위)은 데이터로 보정됐고, 미계측 부하 65%라는 실측이
+     "완전 전력 분해"가 아닌 "타겟 가전 이벤트 분류" 노선을 확정했다. 데이터셋 제공 베이스라인(Seq2Point-CNN)보다
+     TCN 백본이 두 가전 모두에서 우수했다.</p>
+  <div class="tiles">
+    <div class="tile"><div class="num"><em>65%</em></div><div class="cap">평균 미계측 부하<br>→ 회귀 분해가 아닌 이벤트 분류 노선</div></div>
+    <div class="tile"><div class="num"><em>0.99</em></div><div class="cap">헤어드라이기 일 사용확률<br>기획에 없던 안부 신호 발견</div></div>
+    <div class="tile"><div class="num"><em>TCN</em></div><div class="cap">F1 0.880/0.929로 베이스라인<br>Seq2Point-CNN 대비 우위</div></div>
+    <div class="tile"><div class="num"><em>1 Hz</em></div><div class="cap">모델 입력 충분 (1kW급 스텝)<br>수집은 5~10Hz (돌입전류용)</div></div>
+  </div>
+</div>
+
+<!-- ============ 01 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">01</span><h2>데이터 파이프라인: 769GB를 풀지 않았다</h2></div>
+  <div class="prose">
+  <p>VS.zip(68GiB, 해제 시 769GB)을 전체 압축 해제하는 대신 <strong>zip에서 직접 스트리밍</strong>하여
+     131개 채널 전부를 1Hz 캐시(총 ~7GB)로 변환했다. 6-워커 병렬로 <strong>61분</strong>, 오류 0건.
+     디스크 쓰기 약 630GB를 절약했고, 이 단일 머신 기록(131채널/61분)은 추후 Spark 분산 전처리
+     실험("왜 Spark인가")의 <strong>대조군 수치</strong>로 그대로 쓸 수 있다.</p>
+  <p>보존 특징: 유효·무효·피상전력, 전류, 역률 (1초 평균). 30Hz 원본이 필요한 분석(기동 파형)은
+     라벨 시각 기준 행 오프셋 부분 읽기로 처리했다.</p>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">02</span><h2>가전 시그니처 지도</h2></div>
+  <div class="prose">
+  <p>22종 가전을 <strong>일 사용확률</strong>(x) × <strong>사용 시각 집중도</strong>(y) 평면에 놓으면
+     안부 신호 후보가 한눈에 갈린다. 오른쪽 위(매일 + 규칙적)에 있으면서 파란색(수동·고전력)인 가전이 후보다.</p>
+  </div>
+  <div class="fig">
+    <p class="fig-title">안부 신호 후보 지도 — 22종 가전 (16가구 집계)</p>
+    <p class="fig-sub">x: 일 사용확률 · y: 사용 시각 집중도 (1−엔트로피) · 크기: ON 중앙 전력</p>
+    <svg viewBox="0 0 680 360" role="img" aria-label="가전 22종의 일 사용확률 대 시각 집중도 산점도">
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="70" y1="30" x2="640" y2="30"/><line x1="70" y1="127" x2="640" y2="127"/>
+        <line x1="70" y1="223" x2="640" y2="223"/><line x1="70" y1="320" x2="640" y2="320"/>
+        <line x1="70" y1="30" x2="70" y2="320"/><line x1="355" y1="30" x2="355" y2="320"/><line x1="640" y1="30" x2="640" y2="320"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+        <text x="62" y="324" text-anchor="end">0</text><text x="62" y="227" text-anchor="end">.25</text>
+        <text x="62" y="131" text-anchor="end">.50</text><text x="62" y="34" text-anchor="end">.75</text>
+        <text x="70" y="338">0</text><text x="355" y="338" text-anchor="middle">0.5</text><text x="640" y="338" text-anchor="end">1.0 (매일)</text>
+        <text x="14" y="175" transform="rotate(-90 14 175)" text-anchor="middle">시각 집중도</text>
+      </g>
+      <g stroke="var(--chart-surface)" stroke-width="2">
+        <!-- 자동/상시 (orange) -->
+        <circle class="pt" data-tip="일반 냉장고 · 63W · 매일 · 무규칙(상시)" cx="634" cy="318" r="5" fill="var(--s2)"/>
+        <circle class="pt" data-tip="김치 냉장고 · 79W · 매일 · 무규칙(상시)" cx="644" cy="316" r="5.2" fill="var(--s2)"/>
+        <circle class="pt" data-tip="공기청정기 · 8W · p .90 · 집중도 .68 (시작이벤트 희소)" cx="583" cy="56" r="4.4" fill="var(--s2)"/>
+        <circle class="pt" data-tip="온수매트 · 55W · p .95 · 야간 27%" cx="611" cy="216" r="5" fill="var(--s2)"/>
+        <circle class="pt" data-tip="전기장판 · 36W · p .82 · 야간 24%" cx="537" cy="194" r="4.8" fill="var(--s2)"/>
+        <circle class="pt" data-tip="제습기 · 149W · p .45" cx="326" cy="184" r="5.6" fill="var(--s2)"/>
+        <circle class="pt" data-tip="에어컨 · 20W(대기 포함) · p .47" cx="338" cy="144" r="4.6" fill="var(--s2)"/>
+        <!-- 애매/저신호 (gray) -->
+        <circle class="pt" data-tip="TV · 98W · p .95 · 집중도 낮음" cx="611" cy="250" r="5.3" fill="var(--gray-pt)"/>
+        <circle class="pt" data-tip="컴퓨터 · 117W · 부하 변동 심함" cx="606" cy="188" r="5.4" fill="var(--gray-pt)"/>
+        <circle class="pt" data-tip="세탁기 · 63W(평균) · p .61" cx="418" cy="216" r="5" fill="var(--gray-pt)"/>
+        <circle class="pt" data-tip="선풍기 · 28W · p .39 (계절)" cx="292" cy="191" r="4.7" fill="var(--gray-pt)"/>
+        <circle class="pt" data-tip="전기밥솥 · ON중앙 45W(보온) · 취사 분리 필요" cx="503" cy="213" r="4.9" fill="var(--gray-pt)"/>
+        <!-- 수동·고전력 (blue) -->
+        <circle class="pt" data-tip="의류건조기 · 692W · p .45" cx="326" cy="192" r="7.4" fill="var(--s1)"/>
+        <circle class="pt" data-tip="식기세척기 · 675W · p .51" cx="361" cy="168" r="7.4" fill="var(--s1)"/>
+        <circle class="pt" data-tip="에어프라이어 · 612W · p .41" cx="304" cy="170" r="7.2" fill="var(--s1)"/>
+        <circle class="pt" data-tip="전기다리미 · 1389W · p .81" cx="532" cy="207" r="8.8" fill="var(--s1)"/>
+        <circle class="pt" data-tip="전자레인지 · 941W · p .76 · 7/8채널 필터 통과" cx="503" cy="195" r="8" fill="var(--s1)"/>
+        <circle class="pt" data-tip="진공청소기 · 819W · p .94" cx="606" cy="194" r="7.7" fill="var(--s1)"/>
+        <circle class="pt" data-tip="인덕션 · 1463W · p .95 · 펄스형 주의" cx="612" cy="182" r="9" fill="var(--s1)"/>
+        <circle class="pt" data-tip="전기포트 · 1657W · p .94 · 가구간 CV 0.11" cx="606" cy="250" r="9.3" fill="var(--s1)"/>
+        <circle class="pt" data-tip="헤어드라이기 · 934W · p .99 (거의 매일)" cx="634" cy="209" r="8" fill="var(--s1)"/>
+      </g>
+      <g font-family="IBM Plex Sans KR, sans-serif" font-size="11.5" fill="var(--ink-2)">
+        <text x="596" y="266">전기포트</text>
+        <text x="588" y="171">인덕션</text>
+        <text x="562" y="222">헤어드라이기</text>
+        <text x="452" y="188">전자레인지</text>
+        <text x="576" y="145">청소기</text>
+        <text x="560" y="308">냉장고·김치냉장고</text>
+        <text x="500" y="50">공기청정기</text>
+        <text x="454" y="228">밥솥(보온)</text>
+      </g>
+      <line x1="576" y1="152" x2="602" y2="185" stroke="var(--muted)" stroke-width="0.8"/>
+    </svg>
+    <div class="legend">
+      <span><i style="background:var(--s1)"></i>수동 · 고전력 (안부 후보)</span>
+      <span><i style="background:var(--s2)"></i>자동 · 상시 (걸러냄)</span>
+      <span><i style="background:var(--gray-pt)"></i>저전력 · 변동형 (보류)</span>
+    </div>
+    <p class="chartnote">공기청정기가 좌표상 가장 좋아 보이지만(우상단) 상시 가전이라 사람 활동 신호가 아니다 —
+       규칙성 점수만으로는 자동 가전이 상위를 점령하므로 수동성 필터(야간 &lt;5% · 지속 &lt;30분 · 전력 &gt;300W)가 필수라는 발견.</p>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>가전</th><th class="num">채널</th><th class="num">ON 전력(중앙)</th><th class="num">가구간 CV</th><th class="num">회/일</th><th class="num">일 사용확률</th><th class="num">야간 비중</th><th class="num">중앙 지속</th></tr></thead>
+    <tbody>
+      <tr><td>전기포트</td><td class="num">4</td><td class="num">1,657 W</td><td class="num best">0.11</td><td class="num">3.0</td><td class="num">0.94</td><td class="num">1.1%</td><td class="num">2.6분</td></tr>
+      <tr><td>인덕션</td><td class="num">5</td><td class="num">1,463 W</td><td class="num">0.28</td><td class="num">45.5</td><td class="num">0.95</td><td class="num">0.8%</td><td class="num">18초</td></tr>
+      <tr><td>전기다리미</td><td class="num">5</td><td class="num">1,389 W</td><td class="num">0.22</td><td class="num">10.0</td><td class="num">0.81</td><td class="num">0%</td><td class="num">18초</td></tr>
+      <tr><td>전자레인지</td><td class="num">8</td><td class="num">941 W</td><td class="num">0.38</td><td class="num">2.6</td><td class="num">0.76</td><td class="num">0.4%</td><td class="num">3.6분</td></tr>
+      <tr><td>헤어드라이기</td><td class="num">4</td><td class="num">934 W</td><td class="num">0.33</td><td class="num">3.4</td><td class="num best">0.99</td><td class="num">0.1%</td><td class="num">1.5분</td></tr>
+      <tr><td>진공청소기</td><td class="num">6</td><td class="num">819 W</td><td class="num">0.30</td><td class="num">3.7</td><td class="num">0.94</td><td class="num">0%</td><td class="num">1.9분</td></tr>
+      <tr><td>전기밥솥</td><td class="num">7</td><td class="num">45 W ⚠</td><td class="num">0.43</td><td class="num">17.4</td><td class="num">0.76</td><td class="num">5.9%</td><td class="num">2.7시간</td></tr>
+      <tr><td>일반 냉장고</td><td class="num">8</td><td class="num">63 W</td><td class="num">0.36</td><td class="num">27.1</td><td class="num">1.00</td><td class="num">12.6%</td><td class="num">34분</td></tr>
+      <tr><td>전기장판·담요</td><td class="num">9</td><td class="num">36 W</td><td class="num">0.39</td><td class="num">261</td><td class="num">0.82</td><td class="num">24.0%</td><td class="num">75분</td></tr>
+    </tbody>
+  </table></div>
+  <p class="chartnote prose">주요 9종만 표시 (전체 22종은 eda_results.json). ⚠ 밥솥의 ON 중앙 전력 45W = 보온 모드가 지배 — 아래 함정 참조.</p>
+</section>
+
+<!-- ============ 03 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">03</span><h2>안부 신호 랭킹 — 기획 가설의 보정</h2></div>
+  <div class="prose">
+  <p>기획서의 1순위는 "포트·밥솥·전자레인지"였다. 수동성 필터를 통과한 채널을 규칙성 점수(일 사용확률 × 시각 집중도)로
+     정렬한 실측 결과는 순위를 다시 쓴다:</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>순위</th><th>가전</th><th class="num">필터 통과</th><th>판단</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><b>전자레인지</b></td><td class="num">7/8 채널</td><td>보급률·전력·규칙성 모두 우수 — 최우선 타겟 유지</td></tr>
+      <tr><td class="num">2</td><td><b>진공청소기</b> ★신규</td><td class="num">6/6</td><td>일 사용확률 0.94, 기획에 없던 발견</td></tr>
+      <tr><td class="num">3</td><td><b>헤어드라이기</b> ★신규</td><td class="num">4/4</td><td>일 사용확률 0.99 — 사실상 매일, 강력한 생존 신호</td></tr>
+      <tr><td class="num">4</td><td><b>전기포트</b></td><td class="num">4/4</td><td>시그니처 가장 균일(CV 0.11) — cross-house 일반화 최적</td></tr>
+      <tr><td class="num">5</td><td>인덕션</td><td class="num">3/5</td><td>강신호지만 펄스형(45회/일) — 이벤트 정의 별도 설계</td></tr>
+      <tr><td class="num">—</td><td>전기밥솥</td><td class="num">0/7 ✗</td><td>보온 모드가 지배해 통째로는 부적합 — 취사 스텝만 분리 시 사용 가능</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn">
+    <b class="title">⚠ 두 가지 함정이 실측으로 드러났다</b>
+    ① <b>규칙성 점수만 쓰면 공기청정기·냉장고 같은 자동 가전이 상위를 점령</b>한다 — 수동성 필터(야간 사용 &lt;5%,
+    지속 &lt;30분, ON 전력 &gt;300W)가 반드시 선행되어야 한다. 야간(02~05시) 사용률이 가장 깨끗한 구분자다
+    (수동 0~2.4% vs 자동 12~27%).
+    ② <b>"매일 아침 7시" 같은 시각 루틴은 실제로 드물다</b> — 첫 사용 시각 표준편차가 ±1.9~7시간.
+    이상 감지 규칙은 시각 이탈이 아니라 <b>일 단위 사용 여부 + 며칠 연속 무활동</b> 기준이어야 한다
+    (검증 리포트의 일 단위 24/24 결과와 일치).
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">04</span><h2>NILM 난이도 실측</h2></div>
+  <div class="fig">
+    <p class="fig-title">라벨된 가전이 설명하지 못하는 메인 전력 — 평균 65%</p>
+    <p class="fig-sub">가구별 미계측 부하 비율 = 1 − (서브채널 합 ÷ 메인 전력)</p>
+    <svg viewBox="0 0 680 420" role="img" aria-label="가구별 미계측 부하 비율 가로 막대">
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink-2)">
+        <text x="60" y="34" text-anchor="end">H077</text><text x="60" y="58" text-anchor="end">H069</text>
+        <text x="60" y="82" text-anchor="end">H027</text><text x="60" y="106" text-anchor="end">H029</text>
+        <text x="60" y="130" text-anchor="end">H103</text><text x="60" y="154" text-anchor="end">H023</text>
+        <text x="60" y="178" text-anchor="end">H026</text><text x="60" y="202" text-anchor="end">H057</text>
+        <text x="60" y="226" text-anchor="end">H098</text><text x="60" y="250" text-anchor="end">H022</text>
+        <text x="60" y="274" text-anchor="end">H082</text><text x="60" y="298" text-anchor="end">H105</text>
+        <text x="60" y="322" text-anchor="end">H102</text><text x="60" y="346" text-anchor="end">H083</text>
+        <text x="60" y="370" text-anchor="end">H095</text><text x="60" y="394" text-anchor="end">H070</text>
+      </g>
+      <line x1="70" y1="14" x2="70" y2="404" stroke="var(--grid)"/>
+      <line x1="395" y1="14" x2="395" y2="404" stroke="var(--grid)" stroke-dasharray="3 3"/>
+      <text x="395" y="416" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)" text-anchor="middle">평균 65%</text>
+      <g fill="var(--seq)">
+        <rect x="70" y="22" width="144" height="15" rx="3"/><rect x="70" y="46" width="259" height="15" rx="3"/>
+        <rect x="70" y="70" width="266" height="15" rx="3"/><rect x="70" y="94" width="268" height="15" rx="3"/>
+        <rect x="70" y="118" width="277" height="15" rx="3"/><rect x="70" y="142" width="285" height="15" rx="3"/>
+        <rect x="70" y="166" width="293" height="15" rx="3"/><rect x="70" y="190" width="305" height="15" rx="3"/>
+        <rect x="70" y="214" width="345" height="15" rx="3"/><rect x="70" y="238" width="364" height="15" rx="3"/>
+        <rect x="70" y="262" width="373" height="15" rx="3"/><rect x="70" y="286" width="379" height="15" rx="3"/>
+        <rect x="70" y="310" width="385" height="15" rx="3"/><rect x="70" y="334" width="405" height="15" rx="3"/>
+        <rect x="70" y="358" width="420" height="15" rx="3"/><rect x="70" y="382" width="432" height="15" rx="3"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">
+        <text x="220" y="34">29%</text><text x="335" y="58">52%</text><text x="342" y="82">53%</text>
+        <text x="344" y="106">54%</text><text x="353" y="130">56%</text><text x="361" y="154">57%</text>
+        <text x="369" y="178">59%</text><text x="381" y="202">61%</text><text x="421" y="226">69%</text>
+        <text x="440" y="250">73%</text><text x="449" y="274">75%</text><text x="455" y="298">76%</text>
+        <text x="461" y="322">77%</text><text x="481" y="346">81%</text><text x="496" y="370">84%</text><text x="508" y="394">86%</text>
+      </g>
+      <g font-family="IBM Plex Sans KR, sans-serif" font-size="10.5" fill="var(--accent)">
+        <text x="348" y="106">◂ 1인</text><text x="373" y="178">◂ 1인</text><text x="453" y="274">◂ 1인</text>
+      </g>
+    </svg>
+    <p class="chartnote">서브미터가 없는 부하(조명·비데·공유기·충전기 등)가 메인 전력의 29~86%를 차지.
+       → 총 전력을 가전별로 "완전 분해"하는 회귀 접근은 이 데이터에서 성립하기 어렵고,
+       타겟 가전의 이벤트 감지·분류가 목적에 맞는 문제 정의다.</p>
+  </div>
+
+  <h3>이벤트 충돌률 — Event Detection 난이도</h3>
+  <div class="prose">
+  <p>수동 가전 이벤트 시작 ±5초 안에 다른 채널에서 100W 이상 변화가 있는 비율은 <strong>가구 중앙값 4.8%</strong>로 낮다.
+     단, 인덕션+김치냉장고를 함께 쓰는 H069는 31.8%, H029도 21%로 가구 편차가 크다 —
+     동시 이벤트 분리는 엣지 케이스로 처리하되, 일 단위 집계가 오차를 흡수한다.</p>
+  </div>
+
+  <h3>30Hz 기동 파형 — 샘플링 스펙의 근거</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>가전</th><th class="num">스텝</th><th class="num">상승 시간</th><th class="num">돌입 오버슈트</th><th>메인 채널 가시성</th></tr></thead>
+    <tbody>
+      <tr><td>전기포트</td><td class="num">~1,400 W</td><td class="num">67~200 ms</td><td class="num">×1.00 (저항성)</td><td>완벽 — 메인 스텝 = 가전 스텝</td></tr>
+      <tr><td>전자레인지</td><td class="num">~1,030 W</td><td class="num">~1.9 s 램프</td><td class="num">×1.02</td><td>완벽 — 느린 램프 자체가 시그니처</td></tr>
+      <tr><td>전기장판</td><td class="num">~125 W</td><td class="num">33~130 ms</td><td class="num">×1.4~1.5</td><td>보임 (145W 스텝)</td></tr>
+      <tr><td>냉장고</td><td class="num">33 W</td><td class="num">400 ms</td><td class="num">×1.55 (모터)</td><td><b>거의 안 보임</b> — 메인 노이즈에 묻힘</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout">
+    <b class="title">샘플링 스펙 권고: 수집 5~10Hz · 모델 입력 1Hz</b>
+    안부 신호 가전의 1kW급 스텝은 1Hz에서 온전히 보이므로 모델 입력은 1Hz로 충분하다.
+    돌입 오버슈트(모터 ×1.55 vs 저항 ×1.00)는 400ms 스케일이라 모터/저항 판별 특징으로 쓰려면
+    ESP32 수집을 5~10Hz로 잡아야 한다. 부수 확인: 걸러내야 할 냉장고(33W)는 애초에 메인에서
+    감지 문턱 아래 — "자동 가전 무시"가 데이터 차원에서 자연 성립.
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">05</span><h2>모델 방법론 — 실측 비교</h2></div>
+  <div class="prose">
+  <p>동일 조건(H029, 다변량 4특징, 299초 윈도우, 25일 학습/6일 평가, 동일 에폭)에서 4개 아키텍처를 비교했다.
+     회귀(전력값 추정)가 아닌 <strong>분류(ON/OFF)</strong>로 통일 — §04의 미계측 65%가 회귀 노선을 배제하는 근거다.</p>
+  </div>
+  <div class="fig">
+    <p class="fig-title">아키텍처별 초 단위 F1 — 미학습 6일</p>
+    <p class="fig-sub">각 아키텍처 최적 임계값 기준 · 파란색: 전기포트 · 주황색: 전자레인지</p>
+    <svg viewBox="0 0 680 260" role="img" aria-label="4개 아키텍처의 전기포트·전자레인지 F1 비교 막대">
+      <g stroke="var(--grid)" stroke-width="1">
+        <line x1="60" y1="30" x2="650" y2="30"/><line x1="60" y1="80" x2="650" y2="80"/>
+        <line x1="60" y1="130" x2="650" y2="130"/><line x1="60" y1="180" x2="650" y2="180"/><line x1="60" y1="230" x2="650" y2="230"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">
+        <text x="52" y="34" text-anchor="end">1.0</text><text x="52" y="84" text-anchor="end">.9</text>
+        <text x="52" y="134" text-anchor="end">.8</text><text x="52" y="184" text-anchor="end">.7</text><text x="52" y="234" text-anchor="end">.6</text>
+      </g>
+      <!-- y = 230 - (F1-0.6)*500 -->
+      <g>
+        <rect x="90"  y="149" width="52" height="81"  rx="4" fill="var(--s1)"/>
+        <rect x="146" y="84.5" width="52" height="145.5" rx="4" fill="var(--s2)"/>
+        <rect x="240" y="161.5" width="52" height="68.5" rx="4" fill="var(--s1)"/>
+        <rect x="296" y="33.5" width="52" height="196.5" rx="4" fill="var(--s2)"/>
+        <rect x="390" y="90"  width="52" height="140" rx="4" fill="var(--s1)"/>
+        <rect x="446" y="65.5" width="52" height="164.5" rx="4" fill="var(--s2)"/>
+        <rect x="540" y="148.5" width="52" height="81.5" rx="4" fill="var(--s1)"/>
+        <rect x="596" y="79" width="52" height="151" rx="4" fill="var(--s2)"/>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--ink)">
+        <text x="116" y="143" text-anchor="middle">.762</text><text x="172" y="78" text-anchor="middle">.891</text>
+        <text x="266" y="155" text-anchor="middle">.737</text><text x="322" y="27" text-anchor="middle">.993</text>
+        <text x="416" y="84" text-anchor="middle">.880</text><text x="472" y="59" text-anchor="middle">.929</text>
+        <text x="566" y="142" text-anchor="middle">.763</text><text x="622" y="73" text-anchor="middle">.902</text>
+      </g>
+      <g font-family="IBM Plex Sans KR, sans-serif" font-size="13" fill="var(--ink-2)">
+        <text x="144" y="252" text-anchor="middle">CNN (Seq2Point)</text>
+        <text x="294" y="252" text-anchor="middle">BiGRU</text>
+        <text x="444" y="252" text-anchor="middle" font-weight="700">TCN ◂ 선정</text>
+        <text x="594" y="252" text-anchor="middle">Stats-MLP</text>
+      </g>
+    </svg>
+    <div class="legend">
+      <span><i style="background:var(--s1); border-radius:3px"></i>전기포트 (어려운 타겟)</span>
+      <span><i style="background:var(--s2); border-radius:3px"></i>전자레인지</span>
+    </div>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>아키텍처</th><th class="num">포트 F1</th><th class="num">레인지 F1</th><th>이벤트 (감지/정밀)</th><th class="num">파라미터</th><th class="num">학습 시간*</th><th class="num">추론 지연**</th></tr></thead>
+    <tbody>
+      <tr><td>CNN (Seq2Point 계열)</td><td class="num">0.762</td><td class="num">0.891</td><td>3/4 · 3/4 정확</td><td class="num">21K</td><td class="num">3~10분</td><td class="num">0.2~1.1 ms</td></tr>
+      <tr><td>BiGRU</td><td class="num">0.737</td><td class="num best">0.993</td><td>포트 2/4로 불안정</td><td class="num">14K</td><td class="num">4~8분</td><td class="num">3.7~6.1 ms</td></tr>
+      <tr><td><b>TCN (dilated causal)</b></td><td class="num best">0.880</td><td class="num">0.929</td><td class="best">3/4 + 2/2 · 오탐 최소</td><td class="num">45K</td><td class="num">16~27분</td><td class="num">1.3~1.5 ms</td></tr>
+      <tr><td>Stats-MLP (통계특징)</td><td class="num">0.763</td><td class="num">0.902</td><td>recall 좋음 · 오탐 많음</td><td class="num">6K</td><td class="num best">21~24초</td><td class="num best">0.20~0.24 ms</td></tr>
+    </tbody>
+  </table></div>
+  <p class="chartnote prose">* CPU 2스레드 제한 환경, 가전당. ** 윈도우 1개 단건 추론(배치 1, CPU) 중앙값. GPU 시 학습은 수 배 단축.</p>
+
+  <h3>문헌 스캔 — 실험하지 않은 대안의 판단</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>방법론</th><th>강점</th><th>이 프로젝트 관점의 판단</th></tr></thead>
+    <tbody>
+      <tr><td>UNet-NILM (데이터셋 제공 ②)</td><td>상태분류+전력추정 멀티태스크</td><td>전력 추정이 목적이 아니고(§04) 구조가 무거움 — 보류</td></tr>
+      <tr><td>Transformer 계열 (BERT4NILM 등)</td><td>장거리 문맥, SOTA 경쟁</td><td>데이터·연산 요구 큼, 2주 MVP·CPU 환경과 부적합 — 제외</td></tr>
+      <tr><td>HMM/FHMM (고전)</td><td>해석 용이</td><td>다가전·미계측 부하에서 성능 한계로 최신 연구에서 대체됨 — 제외</td></tr>
+      <tr><td>순수 이벤트 매칭 (규칙 기반)</td><td>초경량, Flink 직접 구현</td><td>단독으론 오탐 7배 실증(검증 리포트) — 1차 필터로만 채용</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="reco">
+    <b class="head">권고안: "경량 이벤트 감지 → TCN 윈도우 분류" 2단 파이프라인</b>
+    <p style="margin:0 0 10px">
+      <b>① 스피드 레이어(Flink)</b> — 1초 차분 스텝 감지(&gt;300W) + Stats-MLP 후보 판별(0.2ms).
+      상시 추론이 아니라 이벤트 발생 시에만 2단계를 호출해 부하를 수십 분의 1로 줄인다.
+      Stats-MLP는 가상 만 가구 스트레스 테스트의 추론 대역으로도 사용.<br>
+      <b>② 분류기</b> — 이벤트 주변 299초(1Hz) 다변량 윈도우를 <b>TCN</b>으로 가전 분류.
+      causal dilated 구조라 스트리밍 슬라이딩 윈도우와 궁합이 좋고, 지연 1.5ms로 실시간 요건 충족.<br>
+      <b>③ 서비스 레이어</b> — 가전별 ON/OFF 시퀀스를 일 단위 활동 지표로 집계, 다일 연속 무활동 규칙으로 알림.
+    </p>
+    <p style="margin:0; color:var(--ink-2); font-size:14px">
+      보류됐던 "윈도우 생성 여부"에 대한 답: <b>윈도우 생성 확정</b> — 299초(약 5분) × 1Hz × 다변량 4특징.
+      Seq2Point의 "중심점 예측" 아이디어는 유지하되, 회귀→분류 전환(미계측 65% 근거)과 백본 CNN→TCN 교체(F1 +0.12 실측)가 수정점.
+      단변량(유효전력만) 입력은 베이스라인 수준으로 붕괴함을 확인 — 다변량이 필수.
+    </p>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">06</span><h2>연구질문(RQ) 매핑과 남은 실험</h2></div>
+  <div class="insights">
+    <div class="insight"><b>RQ0 분산 전처리 — 대조군 확보</b>
+      <p>단일 머신 스트리밍 131채널/61분 실측 — Spark 2/4/8 워커 비교 실험의 기준선으로 사용.</p></div>
+    <div class="insight"><b>RQ1 ON/OFF 정확도 — 상당 부분 답변됨</b>
+      <p>가구별 학습 시 초 단위 F1 0.73~0.99, 일 단위 24/24. 남은 것: 16가구 전체 × 상위 5가전 확장 검증.</p></div>
+    <div class="insight"><b>RQ2 가구 간 일반화 — 다음 실험</b>
+      <p>포트(CV 0.11)·다리미·인덕션이 유망, 에어프라이어(1.17)는 불리. N−1 가구 학습 → 미학습 가구 평가(leave-one-house-out)가 다음 단계.</p></div>
+    <div class="insight"><b>RQ3·RQ4 패턴 구축과 이상 표시 — 규칙 재설계 근거 확보</b>
+      <p>시각 루틴은 약하고(±1.9~7h) 일 단위 사용 여부가 안정적. 이상 규칙 = 수동 가전 조합의 다일 연속 무활동. 멘토링 제안(가전별 가중치 자체 알고리즘)의 가중치로 본 EDA의 적합도 점수를 그대로 사용 가능.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p><b>재현 정보</b> — 캐시: <span class="mono">ValidData\cache_1hz\*.npz</span> (131개, ~7GB) ·
+     결과: <span class="mono">eda_results.json · arch_compare.json · risetime.json</span> ·
+     스크립트: <span class="mono">preprocess_all.py → eda_full.py · risetime.py · compare_archs.py</span> ·
+     환경: Python 3.13 · torch 2.13 CPU.</p>
+  <p>자매 문서: <b>NILM MVP 검증 리포트</b> (샘플 검증 → 1인 가구 3곳 교차 검증, 일 단위 24/24).</p>
+  <p class="mono" style="margin-top:14px">NILM 고독사 위험 가구 모니터링 · EDA &amp; 방법론 · 2026-08-28</p>
+</footer>
+</div>
+
+<div class="tip" id="tip"></div>
+<script>
+  const tip = document.getElementById('tip');
+  document.querySelectorAll('.pt').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      tip.textContent = el.dataset.tip;
+      tip.style.display = 'block';
+      tip.style.left = (e.clientX + 14) + 'px';
+      tip.style.top = (e.clientY - 10) + 'px';
+    });
+    el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  });
+</script>
+

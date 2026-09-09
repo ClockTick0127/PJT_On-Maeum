@@ -1,0 +1,301 @@
+# Preserve the existing infrastructure project, network and data volumes.
+name: nilm-local
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: nilm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ../postgres/01-create-databases.sql:/docker-entrypoint-initdb.d/01-create-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: nilm-kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-5L6g3nShT-eMCtK--X86sw}
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: INTERNAL://:19092,CONTROLLER://:9093,EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "127.0.0.1:9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:19092 --list >/dev/null"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  kafka-init:
+    image: apache/kafka:3.9.0
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_RAW_TOPIC: ${KAFKA_RAW_TOPIC:-power.raw.v1}
+      KAFKA_PARTITIONS: ${KAFKA_PARTITIONS:-24}
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists --topic "$$KAFKA_RAW_TOPIC" --partitions "$$KAFKA_PARTITIONS" --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_RAW_TOPIC"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    container_name: nilm-keycloak
+    command: ["start-dev", "--import-realm"]
+    restart: unless-stopped
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN required}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD required}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: ${POSTGRES_USER:?POSTGRES_USER required}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?KEYCLOAK_HOSTNAME required}
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?FRONTEND_ORIGIN required}
+      NILM_SMOKE_CLIENT_SECRET: ${NILM_SMOKE_CLIENT_SECRET:?NILM_SMOKE_CLIENT_SECRET required}
+    volumes:
+      - ../keycloak/nilm-realm.json:/opt/keycloak/data/import/nilm-realm.json:ro
+    ports:
+      - "127.0.0.1:8090:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-ec", "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 24
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto-broker
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ../mqtt/config/mosquitto.local.conf:/mosquitto/config/mosquitto.conf:ro
+      - ../mqtt/config/passwd:/mosquitto/config/passwd:ro
+      - mosquitto_data:/mosquitto/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mqtt-kafka-bridge:
+    build: ../mqtt-kafka-bridge
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USER: ${MQTT_USER:?MQTT_USER required}
+      MQTT_PASS: ${MQTT_PASS:?MQTT_PASS required}
+      MQTT_TOPIC: v1/power/sim/+/main
+      MQTT_CLIENT_ID: nilm-kafka-bridge
+      MQTT_TLS_ENABLED: "false"
+      KAFKA_BOOTSTRAP: kafka:19092
+      KAFKA_TOPIC: ${KAFKA_RAW_TOPIC:-power.raw.v1}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      mosquitto:
+        condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api-gateway:
+    build: ../../backend/api-gateway
+    container_name: nilm-gateway
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      APP_SECURITY_ENABLED: "${APP_SECURITY_ENABLED:-true}"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:?JWT_ISSUER_URI required}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+      IOT_DEVICE_SERVICE_URL: http://iot-device-service:8081
+      MONITORING_SERVICE_URL: http://monitoring-service:8082
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS required}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      iot-device-service:
+        condition: service_healthy
+      monitoring-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 18
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  iot-device-service:
+    build: ../../backend/iot-device-service
+    container_name: nilm-iot-device
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8081
+      APP_SECURITY_ENABLED: "${APP_SECURITY_ENABLED:-true}"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:?JWT_ISSUER_URI required}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/device_db
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 18
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  monitoring-service:
+    build: ../../backend/monitoring-service
+    container_name: nilm-monitoring
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8082
+      APP_SECURITY_ENABLED: "${APP_SECURITY_ENABLED:-true}"
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:?JWT_ISSUER_URI required}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://keycloak:8080/realms/nilm/protocol/openid-connect/certs
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/monitoring_db
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_HEALTH_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8082:8082"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8082/actuator/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 18
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: nilm-kafka-ui
+    profiles: ["tools"]
+    ports:
+      - "127.0.0.1:8091:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: nilm-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  frontend:
+    build: ../../frontend
+    profiles: ["frontend"]
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: nilm-local_postgres_data
+  kafka_data:
+    name: nilm-local_kafka_data
+  redis_data:
+  mosquitto_data:
+
+networks:
+  default:
+    name: nilm-net

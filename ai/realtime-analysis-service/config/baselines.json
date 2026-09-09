@@ -1,0 +1,13 @@
+[
+  {
+    "id": "226dfc19-3222-49a4-8fde-a314573aa23e",
+    "household_id": "H001",
+    "appliance_type": "MICROWAVE",
+    "baseline_type": "ROUTINE_MISSED",
+    "expected_until": "08:10",
+    "normal_days": 12,
+    "window_days": 14,
+    "reliability_weight": 1.0,
+    "enabled": true
+  }
+]

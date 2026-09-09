@@ -1,122 +1,65 @@
 # Backend Services
 
-NILM 프로젝트의 Spring Boot 백엔드 서비스 모음.
-각 서비스는 **독립적으로 빌드·실행**되는 별도 Gradle 프로젝트다.
+API Gateway(8080), IoT Device Service(8081), Monitoring Service(8082)는 독립 Gradle 프로젝트다.
 
-## 기술 버전
+## Docker 실행
 
-| 항목 | 버전 |
+Compose는 infrastructure 아래에서 관리한다. backend/compose.yaml은 제거했다.
+
+- [로컬 실행 및 기존 환경 전환](../infrastructure/README.md)
+- [Jenkins 설정](../docs/배포설정/Jenkins_실행_및_검증.md)
+
+저장소 루트에서 새 로컬 설정을 준비한 뒤:
+
+```powershell
+cd infrastructure/local
+docker compose up -d --build
+```
+
+## IDE 또는 Gradle로 실행
+
+먼저 local Compose에서 postgres/keycloak/kafka/mosquitto/redis를 실행한다. 같은 포트를 사용하는 백엔드 컨테이너는 정지한다.
+
+각 서비스의 실행 환경에 아래 값을 설정한다. Compose의 .env는 IDE에 자동 전달되지 않는다.
+
+| 변수 | 용도 |
 | --- | --- |
-| Java | 21 (toolchain) |
-| Spring Boot | 3.5.16 |
-| Spring Cloud | 2025.0.3 (api-gateway만 사용) |
-| Gradle | 8.14.3 (wrapper 포함) |
-| springdoc-openapi | 2.8.9 |
+| POSTGRES_URL | Device: jdbc:postgresql://localhost:5432/device_db, Monitoring: jdbc:postgresql://localhost:5432/monitoring_db |
+| POSTGRES_USER | DB 사용자 |
+| POSTGRES_PASSWORD | DB 비밀번호 |
+| APP_SECURITY_ENABLED | true면 JWT 검증 |
+| JWT_ISSUER_URI | http://localhost:8090/realms/nilm |
+| IOT_DEVICE_SERVICE_URL | Gateway에서 http://localhost:8081 |
+| MONITORING_SERVICE_URL | Gateway에서 http://localhost:8082 |
+| CORS_ALLOWED_ORIGINS | 프론트 origin |
+| REDIS_HOST / REDIS_PORT | Monitoring의 Redis 연결 |
 
-## 서비스 구성
+Redis는 local Compose 내부에서만 공개한다. Monitoring을 IDE에서 실행할 때 Redis를 쓰려면 별도 로컬 포트 바인딩을 추가한다. 현재 IDE 기본 설정에서는 Redis health가 꺼져 있다.
 
-| 서비스 | 포트 | DB | 역할 |
-| --- | --- | --- | --- |
-| api-gateway | 8080 | 없음 | 외부 진입점, 라우팅, CORS |
-| iot-device-service | 8081 | device_db | 기기 등록·설치·상태 관리 |
-| monitoring-service | 8082 | monitoring_db | 가구 상태·이벤트·대응 이력 관리 |
-
-라우팅 규칙 (api-gateway):
-
-```text
-/api/devices/**    → iot-device-service (IOT_DEVICE_SERVICE_URL, 기본 http://localhost:8081)
-/api/monitoring/** → monitoring-service (MONITORING_SERVICE_URL, 기본 http://localhost:8082)
-```
-
-## 사전 준비
-
-1. JDK 21 설치 (없으면 Gradle toolchain이 자동 다운로드를 시도한다)
-2. PostgreSQL 컨테이너 실행 (저장소 루트에서):
+서비스 디렉터리에서:
 
 ```powershell
-docker compose up -d
-```
-
-3. DB 계정 비밀번호를 환경변수로 준비한다. 비밀번호는 저장소 어디에도 하드코딩하지 않는다.
-
-## 실행 방법 (서비스별, PowerShell 기준)
-
-각 서비스 폴더에서 실행한다. 설정은 `application.properties` 하나이며, 모든 값은 `${환경변수:기본값}` 형태라 환경변수로 덮어쓸 수 있다.
-
-```powershell
-# api-gateway (DB 불필요)
-cd backend/api-gateway
-.\gradlew.bat bootRun
-
-# iot-device-service
-cd backend/iot-device-service
-$env:DB_PASSWORD = "<.env의 POSTGRES_PASSWORD>"
-.\gradlew.bat bootRun
-
-# monitoring-service
-cd backend/monitoring-service
-$env:DB_PASSWORD = "<.env의 POSTGRES_PASSWORD>"
 .\gradlew.bat bootRun
 ```
 
-빌드와 테스트:
+테스트:
 
 ```powershell
-.\gradlew.bat build   # 각 서비스 폴더에서
+.\gradlew.bat test
 ```
 
-## 환경변수
+## 이미지와 헬스체크
 
-| 변수 | 대상 | 기본값 (local) |
-| --- | --- | --- |
-| `SERVER_PORT` | 전체 | 8080 / 8081 / 8082 |
-| `IOT_DEVICE_SERVICE_URL` | gateway | http://localhost:8081 |
-| `MONITORING_SERVICE_URL` | gateway | http://localhost:8082 |
-| `CORS_ALLOWED_ORIGINS` | gateway | http://localhost:5173,http://localhost:3000 |
-| `DB_URL` | device/monitoring | jdbc:postgresql://localhost:5432/{각자 DB} |
-| `DB_USERNAME` | device/monitoring | nilm_admin |
-| `DB_PASSWORD` | device/monitoring | (없음 — 반드시 주입) |
-| `APP_SECURITY_ENABLED` | device/monitoring | false (prod 기본 true) |
-| `JWT_ISSUER_URI` | device/monitoring | prod에서만 필요 (Keycloak 예정) |
-| `REDIS_HOST` / `REDIS_PORT` | monitoring | localhost / 6379 (아직 미사용) |
+Dockerfile은 Java 21로 test와 bootJar를 수행한 후 비루트 사용자로 실행한다.
 
-Docker 내부에서 실행할 때는 `DB_URL`을 `jdbc:postgresql://postgres:5432/...`로 바꾼다.
+- /actuator/health: 전체 상태
+- /actuator/health/readiness: 준비 상태
+- Device와 Monitoring의 readiness는 DB 연결을 포함한다.
+- health는 인증 없이 접근 가능하고 API는 APP_SECURITY_ENABLED=true일 때 JWT가 필요하다.
 
-## 확인 주소 (local)
+Gateway 경유 API: /api/devices/ping, /api/monitoring/ping.
+도메인 CRUD와 실제 Kafka 소비 로직은 아직 스켈레톤 상태다.
 
-| 항목 | 주소 |
-| --- | --- |
-| Gateway 헬스체크 | http://localhost:8080/actuator/health |
-| Device 헬스체크 | http://localhost:8081/actuator/health |
-| Monitoring 헬스체크 | http://localhost:8082/actuator/health |
-| Device Swagger | http://localhost:8081/swagger-ui.html |
-| Monitoring Swagger | http://localhost:8082/swagger-ui.html |
-| 동작 확인 (gateway 경유) | http://localhost:8080/api/devices/ping |
-| 동작 확인 (gateway 경유) | http://localhost:8080/api/monitoring/ping |
+## DB 변경
 
-검증 확인: `POST /api/devices/echo`에 `{"message": ""}`를 보내면 공통 오류 응답
-(`code: VALIDATION_ERROR`, 400)이 반환된다.
-
-## 환경 구분 방식
-
-프로필 파일 분리 없이 `application.properties` 하나를 사용한다.
-- 로컬 실행: 기본값 그대로 (localhost DB 등)
-- 테스트: `src/test/resources/application.properties`가 자동으로 대신 적용되어 H2 인메모리 DB로 돈다
-- 배포(추후): 환경변수 주입으로 값을 덮어쓴다
-
-## 인증 (현재 상태)
-
-- OAuth2 Resource Server 의존성만 추가된 상태. Keycloak은 아직 도입 전.
-- `app.security.enabled=false`(local 기본)면 모든 요청 허용 → Keycloak 없이 실행 가능.
-- `true`면 JWT 검증 활성화, `JWT_ISSUER_URI` 필요. 헬스체크·Swagger 경로는 항상 허용.
-
-## DB 변경 관리
-
-- `ddl-auto: none` 고정, 스키마 변경은 Flyway 마이그레이션(`src/main/resources/db/migration/`)으로만 한다.
-- 현재 V1은 자리표시자(테이블 없음). 테이블 설계는 별도 작업에서 확정 후 V2부터 추가한다.
-- `analysis_db`는 이 프로젝트 범위가 아니며 어떤 서비스도 연결하지 않는다.
-
-## 의도적으로 구현하지 않은 것
-
-Keycloak·JWT 발급, Kafka, MQTT, Redis 실사용, AI 연동, 도메인 CRUD, Eureka, 배포 구성.
-서비스 간 데이터 접근은 자기 DB만 허용 (MSA 데이터 소유 원칙 — 크로스 DB FK/조인 금지).
+Hibernate ddl-auto=none, Flyway로 스키마 변경을 관리한다. infrastructure/postgres SQL은 최초 DB 생성용이며 배포마다 재실행하지 않는다.

@@ -1,0 +1,316 @@
+<title>NILM MVP 실험 결과</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f6f8f7; --surface: #ffffff; --surface-2: #eef2f0;
+    --ink: #14201c; --ink-2: #51625c; --muted: #7d8c86;
+    --hairline: #dde4e1; --accent: #0b5d4e; --accent-soft: #e2efeb;
+    --good: #0ca30c; --good-text: #006300; --critical: #d03b3b; --warn: #b45309;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+    --grid: #e1e0d9; --chart-surface: #fcfcfb; --code-bg: #eef2f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1413; --surface: #171d1b; --surface-2: #1e2624;
+      --ink: #e9efec; --ink-2: #a8b6b1; --muted: #7d8c86;
+      --hairline: #26302d; --accent: #45c3a4; --accent-soft: #17342d;
+      --good: #0ca30c; --good-text: #4ec54e; --critical: #e66767; --warn: #d97706;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+      --grid: #2c2c2a; --chart-surface: #1a1a19; --code-bg: #1e2624;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1413; --surface: #171d1b; --surface-2: #1e2624;
+    --ink: #e9efec; --ink-2: #a8b6b1; --muted: #7d8c86;
+    --hairline: #26302d; --accent: #45c3a4; --accent-soft: #17342d;
+    --good: #0ca30c; --good-text: #4ec54e; --critical: #e66767; --warn: #d97706;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --grid: #2c2c2a; --chart-surface: #1a1a19; --code-bg: #1e2624;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif; line-height: 1.75; margin: 0; font-size: 16px; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px 96px; }
+  .prose { max-width: 720px; }
+  header { padding: 64px 0 0; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: clamp(30px, 5vw, 42px); font-weight: 700; letter-spacing: -.01em; line-height: 1.25; margin: 10px 0 8px; text-wrap: balance; }
+  .subtitle { color: var(--ink-2); font-size: 17px; max-width: 660px; margin: 0 0 20px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--hairline); border-radius: 999px; padding: 3px 12px; }
+  .verdict { background: var(--surface); border: 1px solid var(--hairline); border-top: 3px solid var(--accent); border-radius: 14px; padding: 28px; margin: 8px 0; }
+  .verdict-label { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+  .verdict h2 { margin: 8px 0 6px; font-size: 22px; line-height: 1.45; border: 0; padding: 0; }
+  .verdict p { margin: 0; color: var(--ink-2); }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 22px; }
+  .tile { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; }
+  .tile .num { font-family: "IBM Plex Mono", monospace; font-size: 22px; font-weight: 600; line-height: 1.3; }
+  .tile .num em { font-style: normal; color: var(--good-text); }
+  .tile .num b { color: var(--critical); font-weight: 600; }
+  .tile .cap { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  section { margin-top: 64px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--hairline); padding-bottom: 10px; margin-bottom: 22px; }
+  .sec-no { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--accent); font-weight: 600; }
+  h2 { font-size: 23px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+  h3 { font-size: 17px; font-weight: 700; margin: 30px 0 8px; }
+  p { margin: 0 0 14px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface); margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+  td.pass { color: var(--good-text); font-weight: 600; }
+  td.fail { color: var(--critical); font-weight: 600; }
+  .callout { background: var(--surface); border: 1px solid var(--hairline); border-left: 3px solid var(--accent); border-radius: 10px; padding: 16px 20px; margin: 18px 0; font-size: 15px; }
+  .callout.warn { border-left-color: var(--critical); }
+  .callout b.title { display: block; margin-bottom: 4px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: var(--code-bg); border-radius: 5px; padding: 1.5px 6px; }
+  .fig { background: var(--chart-surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 22px 22px 16px; margin: 20px 0; }
+  .fig-title { font-weight: 700; font-size: 15.5px; margin: 0 0 2px; }
+  .fig-sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .fig svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .chartnote { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+  .qgrid { display: grid; grid-template-columns: 56px repeat(7, 1fr); gap: 4px; max-width: 480px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; }
+  .qgrid .hd { color: var(--muted); align-self: center; }
+  .qcell { border-radius: 5px; text-align: center; padding: 4px 0; font-weight: 600; }
+  .qcell.q { background: var(--good); color: #fff; }
+  .qcell.f { background: transparent; border: 1.5px solid var(--critical); color: var(--critical); }
+  .qcell.x { visibility: hidden; }
+  .insights { display: grid; gap: 14px; }
+  .insight { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 20px 24px; }
+  .insight b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .insight p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .reco { background: var(--accent-soft); border: 1px solid var(--hairline); border-radius: 12px; padding: 22px 26px; margin: 18px 0; }
+  .reco b.head { display: block; font-size: 17px; color: var(--accent); margin-bottom: 6px; }
+  footer { margin-top: 80px; border-top: 1px solid var(--hairline); padding-top: 20px; color: var(--muted); font-size: 13.5px; }
+  @media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, 1fr); } th, td { padding: 8px 10px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .verdict, section { animation: rise .5s ease-out both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">NILM · 고독사 위험 가구 전력 모니터링 프로젝트</div>
+  <h1>NILM MVP 실험 결과</h1>
+  <p class="subtitle">MVP 실험 계획 1~6단계 보고 — 6종 가전 32채널 ON/OFF 분류(4단계)와
+     합성 무사용 스트레스 테스트(5단계). <b>2026-09-02 외부 검수(0901·0902) 반영 정정판</b>: 수치는 1:1 이벤트 매칭·가구-일 기준으로 재검산, 명칭은 "서비스 MVP"가 아닌 "NILM 기술 PoC"로 제한.</p>
+  <div class="meta-row">
+    <span class="chip">2026-08-28 ~ 09-02 (정정판)</span>
+    <span class="chip">Jira S15P21D201-128 · 143~147</span>
+    <span class="chip">16가구 Validation · 32채널 · TCN</span>
+    <span class="chip">RTX 4070 Laptop · CUDA 추론 25배 가속</span>
+  </div>
+</header>
+
+<div class="verdict">
+  <div class="verdict-label">최종 판정 (09-02 정정)</div>
+  <h2>기술 PoC 부분 성공 — 서비스 MVP는 미검증</h2>
+  <p><b>확인된 것</b>: 같은 가구의 과거 라벨로 학습하면 분전반 총량에서 6종 수동 가전의 사용을 이벤트·일 단위로 감지할 수 있다(기술 endpoint).
+     <b>확인되지 않은 것</b>: 신규 가구 배포(cross-house), 실제 부재·위험 상태(서비스 endpoint), 현장 센서 호환성.
+     "거짓 안심·거짓 경보·부재 감지"는 재실 정답이 있는 실험에서만 쓸 수 있는 용어이므로 본 리포트에서 제거했다.
+     모든 수치는 16가구 legacy 개발 세트의 <b>개발 결과</b>다.</p>
+  <div class="tiles">
+    <div class="tile"><div class="num">0.712 / 0.657</div><div class="cap">이벤트 recall / precision<br>1:1 매칭 · 목표 0.80 미달</div></div>
+    <div class="tile"><div class="num">93.3%</div><div class="cap">가구-일 정확도 (105건)<br>CI [0.84, 1.00] · 목표 95% 미통과</div></div>
+    <div class="tile"><div class="num"><b>0.75</b></div><div class="cap">무사용일 recall (16건)<br>CI <b>[0.00, 1.00]</b> — 판단 불가</div></div>
+    <div class="tile"><div class="num">25×</div><div class="cap">GPU 추론 가속<br>(재추론 8.5분, CPU 3~5h)</div></div>
+  </div>
+</div>
+
+<!-- ============ 01 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">01</span><h2>실험 구성 요약</h2></div>
+  <div class="prose">
+  <p>Validation set 단독, 6종 수동 가전(포트·인덕션·다리미·전자레인지·헤어드라이기·청소기) 보유 15가구 × 32채널.
+     가구별 31일을 <strong>Train 19일 / Val 5일 / Test 7일</strong>로 시간분할, 임계값·병합 파라미터는 Val에서만 선정하고
+     Test는 1회 측정. 모델은 채널별 TCN(본선) + Stats-MLP(경량 대조군). 상세는 <code>MVP실험계획.md</code>·회고 문서 참조.</p>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">02</span><h2>4단계 — 분류 성능 (Test 7일, 재검산)</h2></div>
+  <div class="prose">
+  <p><b>기술 endpoint.</b> 이벤트는 greedy 1:1 매칭(onset ±60초 또는 IoU ≥ 0.3), 임계값은 Val에서만 선정.
+     구 방식(30% 겹침)은 조각난 예측을 중복 계산해 8채널에서 정답 수가 감지 수를 초과하는 모순이 있었다 — 폐기.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>가전 (TCN)</th><th class="num">실제</th><th class="num">예측</th><th class="num">매칭</th><th class="num">recall</th><th class="num">precision</th></tr></thead>
+    <tbody>
+      <tr><td>인덕션</td><td class="num">82</td><td class="num">101</td><td class="num">78</td><td class="num pass">0.951</td><td class="num">0.772</td></tr>
+      <tr><td>전기다리미</td><td class="num">223</td><td class="num">231</td><td class="num">177</td><td class="num">0.794</td><td class="num">0.766</td></tr>
+      <tr><td>전기포트</td><td class="num">82</td><td class="num">85</td><td class="num">57</td><td class="num">0.695</td><td class="num">0.671</td></tr>
+      <tr><td>전자레인지</td><td class="num">102</td><td class="num">135</td><td class="num">70</td><td class="num">0.686</td><td class="num">0.519</td></tr>
+      <tr><td>진공청소기</td><td class="num">120</td><td class="num">106</td><td class="num">63</td><td class="num">0.525</td><td class="num">0.594</td></tr>
+      <tr><td>헤어드라이기</td><td class="num">65</td><td class="num">73</td><td class="num">35</td><td class="num">0.538</td><td class="num">0.479</td></tr>
+      <tr><td><b>전체</b></td><td class="num">674</td><td class="num">731</td><td class="num">480</td><td class="num fail"><b>0.712</b></td><td class="num fail"><b>0.657</b></td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+  <p><b>대리지표 endpoint — 가구-일</b> (6종 조합, 105건 = 사용일 89 / 무사용일 16), 가구 block bootstrap 95% CI:</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>지표</th><th class="num">값</th><th class="num">95% CI</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td>가구-일 정확도</td><td class="num">0.933 (98/105)</td><td class="num">[0.838, 1.000]</td><td class="fail">목표 95% 미통과</td></tr>
+      <tr><td>사용일 recall</td><td class="num">0.966 (86/89)</td><td class="num">[0.909, 1.000]</td><td>—</td></tr>
+      <tr><td>무사용일 recall (확인 후보 감지)</td><td class="num">0.750 (12/16)</td><td class="num fail">[0.000, 1.000]</td><td class="fail">표본 부족, 판단 불가</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+  <p>이전 판의 "일 단위 96.0%"는 채널-일(224) 가중 수치로, 가전이 많은 가구가 과대 반영되고 표본이 상관되어 철회.
+     인덕션은 세션 병합(10분) 덕에 최고 성적 — 이벤트 정의가 모델 구조보다 큰 레버리지. 청소기·헤어드라이기(짧은 사용)가 약점.
+     Stats-MLP는 recall 0.782 / precision 0.452로 오탐이 많아 단독 사용 부적합.</p>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">03</span><h2>5단계 — 대상 가전 무사용 판정 (근사 반사실 스트레스 테스트)</h2></div>
+  <div class="callout warn">
+    <b class="title">이 절은 "부재 감지" 검증이 아니다</b>
+    "자연 무사용일"은 사람이 부재한 날이 아니라 여섯 가전을 쓰지 않은 날이고, "합성 무사용"은 메인에서 가전 전력을 차감한 반사실 신호다.
+    재실·안전 정답이 없으므로 서비스 성능(거짓 안심·거짓 경보)을 말할 수 없다. 아래 세 측정은 <b>분모가 서로 다르므로 한 범위로 묶지 않는다</b>
+    (자연 = 채널-일 29건 · 가전 합성 = 채널-일 195건 · 가구 합성 = 가구-일 89건). 용도는 가전 특이도의 약점 진단이다.
+  </div>
+
+  <div class="fig">
+    <p class="fig-title">세 가지 무사용 측정 — 분모가 다른 세 숫자</p>
+    <p class="fig-sub">무사용을 무사용으로 판정한 비율 · 점선 = 계획 당시 목표 95% (서비스 목표가 아닌 개발 목표)</p>
+    <svg viewBox="0 0 680 190" role="img" aria-label="무사용 판정 3종 막대(분모 상이): 자연 채널-일 86.2, 가전 합성 채널-일 52.3, 가구 합성 가구-일 47.2">
+      <line x1="190" y1="12" x2="190" y2="168" stroke="var(--grid)"/>
+      <line x1="618" y1="12" x2="618" y2="168" stroke="var(--critical)" stroke-dasharray="4 3"/>
+      <text x="618" y="182" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--critical)" text-anchor="middle">목표 95%</text>
+      <g font-family="IBM Plex Sans KR, sans-serif" font-size="13" fill="var(--ink)">
+        <text x="8" y="40">자연 무사용 (채널-일 29)</text>
+        <text x="8" y="94">가전 합성 (채널-일 195)</text>
+        <text x="8" y="148">가구 합성 (가구-일 89)</text>
+      </g>
+      <rect x="190" y="24" width="388" height="24" rx="4" fill="var(--s1)"/>
+      <rect x="190" y="78" width="235" height="24" rx="4" fill="var(--s2)"/>
+      <rect x="190" y="132" width="212" height="24" rx="4" fill="var(--s2)"/>
+      <g font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--ink)">
+        <text x="586" y="41">86.2%</text><text x="433" y="95">52.3%</text><text x="410" y="149">47.2%</text>
+      </g>
+    </svg>
+    <div class="legend">
+      <span><i style="background:var(--s1)"></i>실측 (6종 미사용일 — 재실 여부 불명)</span>
+      <span><i style="background:var(--s2)"></i>합성 (반사실 신호 — 다른 활동은 남음)</span>
+    </div>
+    <p class="chartnote">가구-일 기준 자연 무사용일은 12/16 = 75% (본문 §02 표, CI [0, 1]). 채널-일 86.2%와 혼용하지 않는다.</p>
+  </div>
+
+  <h3>합성 무사용 오탐의 원인 분해 (진단 재추론)</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>원인</th><th class="num">비중</th><th>의미</th><th>처방</th></tr></thead>
+    <tbody>
+      <tr><td>배경 부하 오탐</td><td class="num">44%</td><td>미계측 부하 변동에 반응</td><td>배경 네거티브 학습 강화 + 총량 하이브리드</td></tr>
+      <tr><td>교차 가전 혼동</td><td class="num">36%</td><td>다른 1kW급 가전에 발화 (주방 고전력군 집중)</td><td>타 가전 네거티브 샘플 학습 (H200 라운드)</td></tr>
+      <tr><td>차감 합성 인공물</td><td class="num">21%</td><td>측정 방법의 결함 (다리미에 집중). 전류·역률은 P·Q에서 재계산했으나 고조파 왜곡전력은 무시</td><td>합성 방식 개선 — 실제 한계 아님</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>가구 단위 합성 전체 무사용 — 규칙 후보 비교 (확정 아님)</h3>
+  <div class="fig">
+    <p class="fig-title">15가구 × Test 7일: 6종 전부 차감한 합성일의 판정</p>
+    <p class="fig-sub">초록 = 무사용 판정 · 빨간 테두리 = 사용으로 오판 · 원래 사용이 없던 날은 제외 · 합성 신호이므로 실제 부재 아님</p>
+    <div class="qgrid">
+      <span class="hd"></span><span class="hd">D1</span><span class="hd">D2</span><span class="hd">D3</span><span class="hd">D4</span><span class="hd">D5</span><span class="hd">D6</span><span class="hd">D7</span>
+      <span class="hd">H022</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span>
+      <span class="hd">H023</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span>
+      <span class="hd">H026</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span>
+      <span class="hd">H027</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span>
+      <span class="hd">H029</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span>
+      <span class="hd">H057</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span><span class="qcell x"></span>
+      <span class="hd">H069</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span>
+      <span class="hd">H070</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell f">F</span>
+      <span class="hd">H077</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span>
+      <span class="hd">H082</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell f">F</span>
+      <span class="hd">H083</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span>
+      <span class="hd">H098</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span>
+      <span class="hd">H102</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span>
+      <span class="hd">H103</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell q">Q</span><span class="qcell f">F</span><span class="qcell q">Q</span><span class="qcell q">Q</span>
+      <span class="hd">H105</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span><span class="qcell f">F</span>
+    </div>
+    <p class="chartnote">D일 연속 무사용 규칙을 합성일에 적용하면: D=1 → 13/15가구 · D=2 → 8/15 · D=3 → 5/15 트리거.
+       H077·H103·H027은 깨끗하고, H105·H069·H098·H102는 만성 오판 — 배경 부하가 복잡한 집(인덕션·김치냉장고 다수)과 일치.
+       <b>D 규칙은 확정하지 않는다</b>: D=1/2/3 · 시간대 · rolling 24/48h를 누락률·월간 확인 후보 수·지연 분포(p90)로 비교해야 하며,
+       초기 기획 "수 시간 내 감지" 대비 D=2는 목표 후퇴다.</p>
+  </div>
+
+  <div class="callout">
+    <b class="title">해석의 한계</b>
+    합성 무사용은 6종 타겟 가전만 차감한다 — 밥솥 취사·세탁기·조명·충전기 등 <b>사람의 다른 활동은 신호에 그대로 남는다</b>.
+    따라서 47.2%는 "재실 중이지만 6종만 안 쓴 날"의 판정률이고, 실제 부재일의 판정률이 아니다. 자연 무사용일 역시 재실 여부를 모른다.
+    <b>이 실험으로 실제 부재 감지율을 추정하지 않는다</b>(이전 판의 "47~86% 구간" 표현 철회). 유효한 결론은 하나 —
+    모델이 배경 부하(44%)와 유사 가전(36%)에 발화하는 특이도 약점이 있다.
+  </div>
+  <div class="callout">
+    <b class="title">설계 가설: NILM 단독이 아니라 총량과의 하이브리드</b>
+    "총 전력이 평탄하면 무사용"이라는 가정은 합리적이지만 <b>검증되지 않은 가설</b>이다. 총량 기준선 / 서브미터 oracle / NILM / NILM+총량을
+    동일 지표로 비교하는 것이 A안 2단계의 핵심 실험이며, 여기서 NILM이 총량보다 유의미하게 낫지 않으면 차별점 논리를 수정해야 한다.
+    참고: 완벽한 6종 감지기를 가정해도 대상 가전 무사용일은 16/105 — D=1 규칙이면 월 약 4.6회의 "확인 후보일"이 생긴다 (거짓 경보 여부는 판단 불가).
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">04</span><h2>남은 3주 — A안 (검수자·AI 파트 합의, 09-02)</h2></div>
+  <div class="prose">
+  <p>RTX 4070 Laptop으로 추론은 해결됐고(재추론 8.5분, CPU 대비 25배) 학습은 32채널 7.5시간(CPU)이 병목이었다.
+     그러나 검수 결론대로 <strong>GPU 확장보다 평가 체계 수정과 cross-house 검증이 먼저</strong>다 —
+     잘못된 지표를 빠르게 반복하는 것이 더 큰 위험이다. H200은 게이트 통과 이후의 가속 수단으로 둔다.</p>
+  </div>
+  <div class="reco">
+    <b class="head">A안 4항목</b>
+    <p style="margin:0; font-size:15px">
+    ① <b>평가 오류 수정</b> (완료) — 1:1 매칭 재검산, 가구-일 재집계 + bootstrap CI, 용어·과장 교정, 코드 저장소 반영(<code>scripts/</code>)<br>
+    ② <b>핵심 가설 검증</b> — 총량 기준선 vs oracle vs NILM vs 하이브리드 동일 지표 비교 · 16가구 cross-house 스모크(leave-one-house-out, 개발 결과 표기) ·
+       "분전반 신호에서 <u>신규 가구</u>의 수동 가전 사용 징후를 추출할 수 있는가"<br>
+    ③ <b>AI 산출물 확정</b> — 체크포인트 · 입력 특성(4특징·1Hz·299초)·샘플링 규격 · 추론 API 입출력 명세 · 가전별 예측 확률/이벤트 출력 · 한계·적용 조건 문서<br>
+    ④ <b>후속 과제 이관</b> — 110가구 최종 검증(미열람 상태에서 가구 단위 잠금 분할) · H200 스윕 · 멀티라벨 · 실제 부재 검증(재실 정답) · 알림 규칙·하드웨어(P/Q/PF 획득 가능 계측 IC)·서비스 기능</p>
+  </div>
+  <div class="callout">
+    <b class="title">AI 파트의 공식 결론 문장</b>
+    분전반 총량으로부터 수동 가전 사용이라는 활동 대리지표를 추출하는 AI 파이프라인을 구현하고,
+    동일 가구 및 제한적인 cross-house 환경에서 기술 가능성을 검증했다.
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section>
+  <div class="sec-head"><span class="sec-no">05</span><h2>산출물</h2></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>파일</th><th>내용</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">dataset_mvp/split_manifest.json</td><td>32채널 분할 정의 + 세트별 통계</td></tr>
+      <tr><td class="mono">dataset_mvp/ckpt/ · probs/</td><td>체크포인트 64개 · Val/Test 예측 확률 64개</td></tr>
+      <tr><td class="mono">dataset_mvp/thresholds_v2.json · eval_v2.json</td><td><b>유효</b> — 1:1 매칭 임계값 · Test 재검산 + 가구-일 bootstrap</td></tr>
+      <tr><td class="mono">dataset_mvp/thresholds.json · mvp_eval.json</td><td>구 기준 (매칭 결함) — 기록용, 사용 금지</td></tr>
+      <tr><td class="mono">dataset_mvp/anomaly_eval.json · anomaly_house.json</td><td>5단계 합성 무사용 스트레스 테스트 (가전/가구 단위)</td></tr>
+      <tr><td class="mono">dataset_mvp/daily_activity.csv</td><td>일 단위 사용 판정 (224 채널-일, 구 임계값 기준)</td></tr>
+      <tr><td class="mono">scripts/ (README 포함)</td><td>전 실험 코드 — 원본 6 · 재구성본 5 · 유실 6 표기</td></tr>
+      <tr><td class="mono">MVP실험계획.md · MVP회고_1-4단계.md · 프로젝트총정리.md</td><td>계획·회고·총정리 (09-02 정정판)</td></tr>
+      <tr><td class="mono">0901_feedback.md · 0902_feedback_2nd.md · 수용안 2건</td><td>외부 검수 기록</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+  <p>Jira: <span class="mono">S15P21D201-128·143·144·145·146·147</span> 산출물 존재. 단, 145(평가)는 재검산 기준으로 교체됨.
+     자매 문서: <b>NILM MVP 검증 리포트</b> · <b>NILM EDA &amp; 방법론</b> — 두 문서 상단에 09-02 정정 공지 게시.</p>
+  </div>
+</section>
+
+<footer>
+  <p><b>환경</b> — Python 3.13 · torch 2.11+cu128 · RTX 4070 Laptop 8GB · 학습 7.5h(CPU 4프로세스) / 추론 8.5분(GPU) · seed 0.
+     스크립트: <span class="mono">train_mvp.py → eval_v2.py · step5_anomaly.py · step5_diag.py · step5_house.py</span></p>
+  <p><b>정정 이력</b> — 08-30 초판 → 09-02 정정판 (외부 검수 0901·0902): 채널-일 96% 철회 → 가구-일 93.3% CI · 이벤트 P/R 재검산 · "거짓 안심"/"부재 감지" 용어 제거 · "47~86% 구간" 철회 · H200 로드맵 → A안.</p>
+  <p class="mono" style="margin-top:14px">NILM 고독사 위험 가구 모니터링 · MVP 실험 결과 (기술 PoC) · 2026-09-02 정정판</p>
+</footer>
+</div>

@@ -1,0 +1,61 @@
+name: nilm-hdfs
+
+# HDFS 데이터 레이크 (원본 파형·Parquet 적재용)
+# 실행: infrastructure/local의 compose를 먼저 올려 nilm-net 생성 후,
+#       이 폴더에서 docker compose up -d
+# 검증: http://localhost:9870 (NameNode UI)
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: nilm-namenode
+    restart: unless-stopped
+    ports:
+      - "9870:9870"   # 웹 UI (파일 브라우저·DataNode 상태)
+      - "9000:9000"   # HDFS RPC (Spark 등 클라이언트 접속)
+    environment:
+      CLUSTER_NAME: nilm
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: 1              # DataNode 1대 로컬 환경 최적화
+      HDFS_CONF_dfs_permissions_enabled: "false"  # 개발 편의 (운영 전 활성화 필요)
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: nilm-datanode
+    restart: unless-stopped
+    ports:
+      - "9864:9864"   # DataNode 웹 UI
+    environment:
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: 1
+      HDFS_CONF_dfs_permissions_enabled: "false"
+      SERVICE_PRECONDITION: "namenode:9870"     # NameNode 기동 후 합류
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    depends_on:
+      - namenode
+
+  loader:
+    build: ./loader
+    container_name: nilm-hdfs-loader
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP: kafka:19092
+      KAFKA_TOPIC: power-raw        # 토픽명 통일 결정 시 여기만 변경
+      HDFS_URL: http://namenode:9870
+      HDFS_BASE: /data/stream
+      FLUSH_SECS: 60
+    depends_on:
+      - namenode
+      - datanode
+
+volumes:
+  namenode_data:
+  datanode_data:
+
+networks:
+  default:
+    external: true
+    name: nilm-net

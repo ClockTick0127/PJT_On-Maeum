@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realtime-analysis-service"
+version = "0.1.0"
+description = "Kafka-based realtime power analysis service"
+requires-python = ">=3.11"
+dependencies = [
+    "confluent-kafka==2.6.0",
+    "pydantic>=2,<3",
+    "pydantic-settings>=2,<3",
+    "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+realtime-analysis = "realtime_analysis.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
