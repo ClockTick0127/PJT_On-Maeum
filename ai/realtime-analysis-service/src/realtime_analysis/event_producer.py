@@ -1,6 +1,7 @@
 """Kafka publisher for the agreed MVP analysis event contract."""
 
 import json
+import logging
 from typing import Any
 
 from confluent_kafka import Producer
@@ -8,6 +9,7 @@ from confluent_kafka import Producer
 from realtime_analysis.config import Settings
 from realtime_analysis.schemas import AnalysisEvent
 
+logger = logging.getLogger(__name__)
 
 # 이상 이벤트 발행 
 class AnalysisEventPublisher:
@@ -43,3 +45,7 @@ class AnalysisEventPublisher:
             raise RuntimeError(f"{remaining} analysis events were not delivered")
         if delivery_errors:
             raise RuntimeError(f"Analysis event delivery failed: {delivery_errors[0]}")
+        logger.info(
+            "분석 이벤트 발행 완료: 토픽=%s 가구=%s 이벤트=%s 유형=%s",
+            self._topic, event.household_id, event.event_id, event.event_type,
+        )

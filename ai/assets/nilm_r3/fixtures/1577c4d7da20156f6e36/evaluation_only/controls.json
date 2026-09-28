@@ -1,0 +1,125 @@
+{
+  "cold_2": {
+    "metrics": {
+      "counts": {
+        "tp": 93,
+        "fp": 0,
+        "fn": 0,
+        "tn": 238,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 1.0,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 1.0,
+      "rank_score": 1.0,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      2312376,
+      2312707
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 331
+    }
+  },
+  "long_prefix": {
+    "metrics": {
+      "counts": {
+        "tp": 243,
+        "fp": 0,
+        "fn": 4,
+        "tn": 684,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 0.9838056680161943,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.9838056680161943,
+      "rank_score": 0.9918367346938776,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      2312076,
+      2313007
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 331
+    }
+  },
+  "off_control": {
+    "metrics": {
+      "counts": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 600,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": null,
+      "recall_including_unknown": null,
+      "unknown_fraction": 0.0,
+      "conditional_recall": null,
+      "rank_score": null,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": false
+    },
+    "evaluation_interval": [
+      673454,
+      674054
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "other_day": {
+    "metrics": {
+      "counts": {
+        "tp": 194,
+        "fp": 3,
+        "fn": 9,
+        "tn": 144,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.9847715736040609,
+      "recall_including_unknown": 0.9556650246305419,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.9556650246305419,
+      "rank_score": 0.97,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      44113,
+      44463
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "candidate_id": "1577c4d7da20156f6e36",
+  "appliance": "induction",
+  "house": "H027",
+  "cold_runs_complete": 2,
+  "long_prefix_complete": true,
+  "truth_absent_cold2_scores_identical": true,
+  "recommendation": "external_review_pending"
+}

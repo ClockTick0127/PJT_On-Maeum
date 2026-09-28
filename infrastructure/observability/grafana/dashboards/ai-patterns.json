@@ -1,0 +1,777 @@
+{
+  "uid": "nilm-ai-patterns",
+  "title": "NILM · AI 패턴 감지 및 일일 작업",
+  "description": "AI 패턴 판정과 최종 Kafka 발행을 구분하고, 일일 작업은 exported_job으로 집계합니다. 메트릭 미발생은 No data이며 0으로 보정하지 않습니다.",
+  "tags": [
+    "nilm",
+    "ai",
+    "patterns"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 2,
+  "editable": false,
+  "refresh": "1s",
+  "timepicker": {
+    "refresh_intervals": [
+      "1s",
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "time": {
+    "from": "now-2d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "label": "AI / aggregation instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "nilm-prometheus"
+        },
+        "query": {
+          "query": "label_values(up{job=~\"ai-analysis|aggregation-service\"}, instance)",
+          "refId": "VariableQuery"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "AI·일일 작업 메트릭 수집 상태",
+      "description": "1은 수집 성공, 0은 실패. 데이터가 없으면 대상 설정과 AI 이미지 버전을 확인하세요.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}",
+          "legendFormat": "{{job}} / {{instance}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "패턴 판정 · 프로세스 누적",
+      "description": "프로세스 시작 이후 누적값. detected는 실시간 패턴의 cooldown·중복 제거 전 후보 판정이며 최종 발행 건수가 아닙니다. 일일 ROUTINE_CHANGED는 실행당 결과입니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(pattern,result) (nilm_pattern_detection_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}) > 0",
+          "legendFormat": "{{pattern}} / {{result}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "패턴 판정 결과 / 초",
+      "description": "detected, not_detected, error, skipped를 구분합니다. 실제 알고리즘 평가가 없는 동안에는 증가하지 않습니다. 1초 수집에도 rate는 여러 샘플의 평균입니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(pattern,result) (rate(nilm_pattern_detection_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{pattern}} / {{result}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "조회 기간 패턴 판정 건수",
+      "description": "increase 보간 추정치. 최초 생성 시 이미 1인 Counter의 첫 발생은 증가량에 포함되지 않을 수 있으므로 프로세스 누적값도 함께 확인하세요.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(pattern,result) (increase(nilm_pattern_detection_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__range])) > 0",
+          "legendFormat": "{{pattern}} / {{result}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "패턴 알고리즘 지연 p95",
+      "description": "Histogram bucket 기반 추정치. 관측 없는 구간은 비어 있습니다. 일일 패턴은 짧은 rate 창에 나타나지 않을 수 있습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by(le,pattern) (rate(nilm_pattern_detection_duration_seconds_bucket{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__rate_interval])))",
+          "legendFormat": "{{pattern}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "패턴 알고리즘 평균 지연",
+      "description": "실제 알고리즘 호출 시간의 sum/count 비율. 관측 없는 구간을 0초로 표시하지 않습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(pattern) (rate(nilm_pattern_detection_duration_seconds_sum{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__rate_interval])) / sum by(pattern) (rate(nilm_pattern_detection_duration_seconds_count{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{pattern}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "최종 패턴 이벤트 발행 / 초",
+      "description": "Kafka 발행까지 성공한 최종 이벤트 수. 감지 후보와 차이가 나도 발행 실패를 의미하지 않습니다. cooldown·중복 제거의 영향을 받습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(event_type) (rate(nilm_pattern_events_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{event_type}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": false,
+          "range": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "최종 패턴 이벤트 · 프로세스 누적",
+      "description": "Kafka 발행 성공 누적값. 재시작 시 초기화됩니다. 아직 발행되지 않은 라벨은 No data일 수 있습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(event_type) (nilm_pattern_events_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}) > 0",
+          "legendFormat": "{{event_type}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "일일 작업 · 조회 기간 실행 건수",
+      "description": "exported_job별 success/error. 기본 48시간 범위의 increase 추정치이며, 최초 실행이 첫 수집 전에 끝난 경우 첫 증가를 놓칠 수 있습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(exported_job,status) (increase(nilm_daily_job_runs_total{job=\"aggregation-service\",instance=~\"$instance\"}[$__range])) > 0",
+          "legendFormat": "{{exported_job}} / {{status}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "일일 작업 · 프로세스 누적 실행 건수",
+      "description": "activity_index, routine_changed, baseline_update의 실행 결과. ROUTINE_CHANGED 정책 부재로 skipped가 발생해도 작업 자체는 success일 수 있습니다. 미실행 작업의 시계열은 생성되지 않습니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(exported_job,status) (nilm_daily_job_runs_total{job=\"aggregation-service\",instance=~\"$instance\"}) > 0",
+          "legendFormat": "{{exported_job}} / {{status}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "일일 작업 · 조회 기간 지연 p95",
+      "description": "짧은 rate 창 대신 선택한 전체 기간의 Histogram 증가량 사용. 실패한 실행도 지연에 포함됩니다. 첫 관측을 놓쳤다면 누적 평균을 확인하세요.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by(le,exported_job) (increase(nilm_daily_job_duration_seconds_bucket{job=\"aggregation-service\",instance=~\"$instance\"}[$__range])))",
+          "legendFormat": "{{exported_job}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "일일 작업 · 조회 기간 평균 지연",
+      "description": "선택 기간의 sum/count 증가량 비율. 마지막 실행 시간 또는 현재 실행 중인 작업의 경과 시간이 아닙니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(exported_job) (increase(nilm_daily_job_duration_seconds_sum{job=\"aggregation-service\",instance=~\"$instance\"}[$__range])) / sum by(exported_job) (increase(nilm_daily_job_duration_seconds_count{job=\"aggregation-service\",instance=~\"$instance\"}[$__range]))",
+          "legendFormat": "{{exported_job}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "일일 작업 · 프로세스 누적 평균 지연",
+      "description": "첫 수집 전에 완료된 최초 실행도 포함하는 프로세스 누적 sum/count 평균. 조회 기간 평균과 다릅니다. Counter가 재시작된 인스턴스는 새 누적값으로 계산됩니다.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(exported_job) (nilm_daily_job_duration_seconds_sum{job=\"aggregation-service\",instance=~\"$instance\"}) / sum by(exported_job) (nilm_daily_job_duration_seconds_count{job=\"aggregation-service\",instance=~\"$instance\"})",
+          "legendFormat": "{{exported_job}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "최종 패턴 이벤트 · 조회 기간 발행 건수",
+      "description": "선택 기간의 Kafka 발행 성공 증가량 추정치. 최초 시계열 생성 이전의 발생은 프로세스 누적값에서 확인하세요.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "nilm-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(event_type) (increase(nilm_pattern_events_total{job=~\"ai-analysis|aggregation-service\",instance=~\"$instance\"}[$__range])) > 0",
+          "legendFormat": "{{event_type}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nilm-prometheus"
+          },
+          "interval": "1s",
+          "instant": true,
+          "range": false
+        }
+      ]
+    }
+  ]
+}

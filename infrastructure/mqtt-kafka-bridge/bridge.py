@@ -100,7 +100,9 @@ def main():
     kafka_ready, next_check = False, 0.0
     try:
         while not stop.is_set() and not failed.is_set():
-            producer.poll(0.2)
+            served = producer.poll(0.05)
+            while served > 0 and not stop.is_set() and not failed.is_set():
+                served = producer.poll(0)
             now = time.monotonic()
             if now >= next_check:
                 try:
@@ -115,7 +117,6 @@ def main():
                 HEALTH_FILE.touch()
             else:
                 HEALTH_FILE.unlink(missing_ok=True)
-            stop.wait(0.2)
     finally:
         HEALTH_FILE.unlink(missing_ok=True)
         # Keep unacknowledged messages in the broker's persistent session.

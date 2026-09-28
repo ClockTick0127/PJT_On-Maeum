@@ -1,230 +1,252 @@
-# 로컬 실행 및 배포
+# On:마음 | 안심 알림
 
-Docker Compose는 `infrastructure/local`(로컬), `infrastructure/ec2-a`, `infrastructure/ec2-b`(운영)에서 각각 관리합니다. 아래 명령은 모두 `infrastructure/local`에서 실행합니다.
+가전 전력 사용 패턴으로 홀로 사는 어르신의 이상 징후를 감지하고, 담당자와 대상자에게 실시간으로 알리는 서비스입니다.
+클램프 센서(CT)로 측정한 전력 파형만으로 가전별 ON/OFF를 판별하고(NILM), 평소 생활 패턴과 오늘의 사용을 비교해 위험을 판단합니다.
 
-- [실행 안내 상세](infrastructure/README.md)
-- [전체 구조 설명](docs/배포설정/로컬_EC2_Compose_Jenkins_구조.md)
-- [Jenkins 설정과 검증 결과](docs/배포설정/Jenkins_실행_및_검증.md)
-
-## 최초 설정
-
-```powershell
-cd infrastructure/local
-.\Setup-Local.ps1
-```
-
-`.env.example`을 바탕으로 `.env`를 만듭니다. 이미 있으면 덮어쓰지 않습니다. `MQTT_USER`, `MQTT_PASS`는 `infrastructure/mqtt/config/passwd`의 계정과 일치해야 하며, passwd 파일이 없는 새 환경은 `.\Setup-Local.ps1 -InitializeMqtt`로 생성합니다.
-
-## 실행
-
-```powershell
-docker compose up -d --build
-docker compose ps
-```
-
-포트: Keycloak 8090, Gateway 8080, Device 8081, Monitoring 8082, PostgreSQL 5432, Kafka 9092, MQTT 1883. 모두 `127.0.0.1`에만 바인딩됩니다. 프론트 컨테이너(3000)와 Kafka UI(8091)는 `--profile frontend --profile tools`를 붙였을 때만 뜹니다.
-
-## `.env`를 바꿨을 때
-
-```powershell
-docker compose up -d
-```
-
-`--build`는 필요 없습니다. 환경변수가 바뀐 컨테이너만 재생성됩니다. 단, 아래 값은 **첫 기동 때 데이터에 굳어져서 `.env`만 바꿔도 반영되지 않습니다.**
-
-| 변수 | 반영되지 않는 이유 | 데이터를 유지하며 바꾸는 방법 |
-| --- | --- | --- |
-| `KEYCLOAK_ADMIN_PASSWORD` | 관리자는 `keycloak_db`가 비었을 때 한 번만 생성 | Admin Console(realm `master` → Users → admin → Credentials) 또는 `kcadm.sh set-password -r master --username admin` |
-| `POSTGRES_PASSWORD` | 데이터 디렉터리 초기화 때만 적용 | `ALTER ROLE <user> PASSWORD '...'` 실행 후 `.env` 수정 → `up -d` |
-| `POSTGRES_USER` | 같음 | 이름 변경은 비권장. 아래 전체 초기화 사용 |
-| `FRONTEND_ORIGIN`, `NILM_SMOKE_CLIENT_SECRET` | realm import는 `nilm` realm이 없을 때만 실행 | Admin Console에서 client 설정 수정 |
-| `MQTT_USER`, `MQTT_PASS` | 실제 인증은 `mqtt/config/passwd` 파일 | `mosquitto_passwd`로 passwd 갱신 후 `.env` 수정 → `up -d` |
-
-`JWT_ISSUER_URI`, `CORS_ALLOWED_ORIGINS`, `APP_SECURITY_ENABLED`, `KAFKA_RAW_TOPIC`은 컨테이너 환경변수로만 쓰여 `up -d`만으로 반영됩니다.
-
-## 백엔드·Bridge 코드를 바꿨을 때
-
-```powershell
-docker compose up -d --build api-gateway
-```
-
-바뀐 서비스만 지정합니다(`api-gateway`, `iot-device-service`, `monitoring-service`, `mqtt-kafka-bridge`, `frontend`). 백엔드 Dockerfile은 이미지 안에서 `./gradlew test bootJar`를 실행하므로 로컬 사전 빌드는 필요 없지만, **테스트가 실패하면 이미지 빌드도 실패**합니다. 빌드 로그는 `docker compose build <service> --progress=plain`으로 확인합니다.
-
-자주 수정할 때는 인프라만 Compose로 띄우고 백엔드는 IDE에서 실행하는 편이 빠릅니다. Compose의 `.env`는 IDE로 전달되지 않으니 환경변수를 별도로 설정합니다.
-
-```powershell
-docker compose up -d postgres keycloak kafka mosquitto redis
-```
-
-## 전체 초기화
-
-DB init SQL, Flyway, Keycloak realm import를 처음부터 다시 확인하거나 `POSTGRES_USER` 같은 값을 바꿀 때 사용합니다. 로컬 데이터(`device_db`, `monitoring_db`, Kafka, Keycloak 사용자)가 모두 삭제되며 되돌릴 수 없습니다.
-
-```powershell
-docker compose down -v
-docker compose up -d --build
-```
-
-## 동작 확인
-
-```powershell
-# PostgreSQL init: 01-create-databases.sql 실행 여부와 DB 4개
-docker logs nilm-postgres 2>&1 | Select-String "01-create-databases|CREATE DATABASE"
-docker exec nilm-postgres psql -U nilm_admin -d postgres -c "\l"
-
-# MQTT -> Bridge -> Kafka 전달
-docker compose exec -T mqtt-kafka-bridge python smoke.py
-```
-
-인증 흐름(Keycloak 테스트 사용자 생성, 토큰 발급, Gateway 호출)은 [실행 안내 상세](infrastructure/README.md)의 Keycloak 절을 따릅니다.
-
-# Git Convention
-
-## Git Flow
-
-Git Flow 전략을 기반으로 브랜치를 관리
-
-| Branch      | 역할                       |
-| ----------- | -------------------------- |
-| `master`    | 배포 가능한 운영 버전      |
-| `develop`   | 다음 배포를 위한 개발 통합 |
-| `feature/*` | 기능 개발                  |
-| `release/*` | 배포 준비 및 최종 수정     |
-| `hotfix/*`  | 운영 환경 긴급 수정        |
-
-```text
-master
-│
-├── hotfix/*
-│
-└── develop
-    ├── feature/*
-    └── release/*
-```
+> 로컬 실행·배포 방법과 Git 컨벤션은 [깃플로우및실행안내.md](깃플로우및실행안내.md)에 있습니다.
 
 <br />
-<br />
 
-## Branch Flow
+## 주요 기능
 
-#### Feature
+### 1. 평소 생활 패턴과 오늘 전력 사용 비교
+평소 기록된 전자레인지 사용 파형을 재생하고, 같은 시간대 오늘 측정값을 실시간 MQTT로 발행해 두 패턴을 나란히 비교합니다.
 
-- develop 에서만 분기
-- 하나의 기능이 완성될경우 develop으로 병합
+![평소 생활 패턴과 오늘 전력 사용 비교](docs/readme/01-routine-simulator.gif)
 
-#### Release
+### 2. 위험 감지 시 담당자 대시보드 실시간 알림
+분석 서비스가 평소와 다른 사용을 감지하면 담당자 대시보드에 위험 배너와 새 알림이 즉시 뜨고, 대상자의 위험 단계와 점수가 갱신됩니다.
 
-- develop에 어느정도 기능이 쌓였을 경우 release로 병합
-- release에서 발생한 버그는 release 브랜치 내에서 수정
-- release 내에서 버그를 수정한 경우 develop에도 병합
-- 버그가 수정되었고 서비스 가능하다면 master와 develop 양쪽으로 PR
+![위험 감지 시 담당자 대시보드 실시간 알림](docs/readme/02-risk-alert.gif)
 
-#### Hotfix
+### 3. 대상자에게 안전 확인 요청
+위험이 감지되면 대상자 화면과 브라우저 푸시로 "지금 상태를 알려주세요" 안전 확인 요청을 보내고, 대상자는 '도움이 필요해요' 또는 '괜찮아요'로 응답합니다.
 
-- master 에서만 분기
-- 빠른 버그수정이 필요할때 사용하며 버그 수정이 완료되면 master로 PR
+![대상자에게 안전 확인 요청](docs/readme/03-safety-check.gif)
 
-#### main, develop
+### 4. 도움 요청 즉시 담당자에게 전달
+대상자가 '도움이 필요해요'를 누르면 담당자 대시보드에 도움 요청 알림과 배지가 바로 표시되어 담당자가 대상자 확인·해결 처리를 할 수 있습니다.
 
-- Push하지 않고 Pull Request를 통해 반영
+![도움 요청 즉시 담당자에게 전달](docs/readme/04-help-request.gif)
 
 <br />
+
+## 시스템 아키텍처
+
+![시스템 아키텍처](docs/readme/architecture.webp)
+
 <br />
 
-## Branch Naming
+## ERD
 
-```text
-{type}/{scope}/{description}
+서비스마다 DB가 분리되어 있어 서비스 간에는 FK가 없습니다. 실선은 FK, 점선은 id로만 잇는 논리적 참조입니다.
+가구는 `house_id`(= 다른 서비스의 `household_id`), 사용자는 Keycloak `sub`(`keycloak_user_id` / `auth_sub`)로 서비스 사이를 연결합니다.
+
+### 기기 인증 서비스 (iot-device-service · `device_db`)
+가구·구성원·초대와 기기, 기기별 MQTT 인증 정보를 관리합니다.
+
+```mermaid
+erDiagram
+    households ||--o{ household_members : "구성원"
+    households ||--o{ household_invites : "초대 코드"
+    households ||--o{ devices : "설치 기기"
+    user_profiles ||..o{ household_members : "keycloak_user_id"
+    user_profiles ||..o| manager_registration_outbox : "담당자 등록"
+    devices ||--o{ install_history : "설치 이력"
+    devices ||--|| device_credentials : "MQTT 인증"
+    devices ||--o{ device_acl : "토픽 권한"
+
+    households {
+        string house_id PK
+    }
+    household_members {
+        string house_id PK,FK
+        uuid keycloak_user_id PK
+    }
+    household_invites {
+        string code PK
+        string house_id FK
+    }
+    user_profiles {
+        uuid keycloak_user_id PK
+    }
+    devices {
+        bigint device_id PK
+        string house_id FK
+    }
+    install_history {
+        bigint history_id PK
+        bigint device_id FK
+    }
+    device_credentials {
+        bigint device_id PK,FK
+    }
+    device_acl {
+        bigint acl_id PK
+        bigint device_id FK
+    }
+    manager_registration_outbox {
+        uuid event_id PK
+        uuid keycloak_user_id
+    }
 ```
 
-#### Type
+### 모니터링 서비스 (monitoring-service · `monitoring_db`)
+담당자·대상자, 분석 이벤트와 알림, 위험 평가, 배치로 받은 가구 프로필을 관리합니다.
 
-```text
-feature
-release
-hotfix
+```mermaid
+erDiagram
+    managers ||--o{ subjects : "담당"
+    managers ||--o{ notification_settings : "알림 설정"
+    subjects ||--o{ analysis_events : "분석 이벤트"
+    subjects ||..o{ risk_assessments : "위험 평가"
+    subjects ||..o{ notifications : "알림"
+    analysis_events ||..o{ notifications : "event_id"
+    risk_assessments ||..o| notifications : "assessment_id"
+    subjects ||..o{ push_subscriptions : "auth_sub"
+    subjects ||..o{ household_profiles : "household_id"
+    household_profiles ||--o{ household_routine_baselines : "루틴 기준선"
+    household_profiles ||--o{ household_profile_statistics : "지표 통계"
+
+    managers {
+        bigint id PK
+        string auth_sub
+    }
+    subjects {
+        bigint id PK
+        bigint manager_id FK
+        string household_id
+    }
+    analysis_events {
+        uuid id PK
+        bigint subject_id FK
+    }
+    notifications {
+        bigint id PK
+        uuid event_id
+        bigint subject_id
+        uuid assessment_id
+    }
+    notification_settings {
+        bigint id PK
+        bigint manager_id FK
+    }
+    push_subscriptions {
+        bigint id PK
+        string auth_sub
+    }
+    risk_assessments {
+        uuid id PK
+        bigint subject_id
+    }
+    household_profiles {
+        bigint id PK
+        string household_id
+    }
+    household_routine_baselines {
+        bigint id PK
+        bigint profile_id FK
+    }
+    household_profile_statistics {
+        bigint id PK
+        bigint profile_id FK
+    }
 ```
 
-#### Scope
+> 이 외에 `household_id` 기준 집계 테이블(`appliance_states`, `appliance_usage_episodes`, `hourly_power_usage`, `hourly_appliance_power_usage`, `household_daily_appliance_usage`, `household_observations`, `household_device_connectivity`)과 Gold 배치가 쓰는 `reporting` 스키마(`report_runs` 1:N `report_rows`)가 있습니다.
 
-| Scope     | 대상                       |
-| --------- | -------------------------- |
-| `front`   | Frontend                   |
-| `back`    | Backend                    |
-| `ai`      | AI / ML                    |
-| `data`    | 데이터 수집 / 전처리 / ETL |
-| `bigdata` | 대용량 데이터 처리         |
-| `spark`   | Spark / 분산 처리          |
-| `kafka`   | Kafka / 분산 처리          |
-| `infra`   | Docker / 서버 / 배포 환경  |
-| `common`  | 공통 작업                  |
+### 실시간 패턴 분석 서비스 (realtime-analysis-service · `analysis_db`)
+가전 ON/OFF 세션과 일별 관측, 이벤트 발행 기록, 데이터 레이크 적재·배치 실행 이력을 관리합니다.
 
-예시:
+```mermaid
+erDiagram
+    household_observation_daily ||--o{ household_activity_daily : "가전별 활동"
+    household_activity_daily ||--o{ appliance_usage_session : "사용 세션"
+    appliance_usage_session ||..o{ session_lake_outbox : "session_id"
+    session_lake_batch ||--o{ session_lake_outbox : "적재 배치"
+    analysis_processing_receipt ||--|| analysis_receipt_lake_outbox : "처리 영수증"
+    analysis_receipt_lake_batch ||--o{ analysis_receipt_lake_outbox : "적재 배치"
+    lake_batch_run ||--o{ lake_dataset_version : "데이터셋 버전"
+    lake_batch_run ||--o{ lake_dataset_dependency : "선행 의존"
+    batch_run ||--o{ batch_step_run : "단계 실행"
 
-```text
-feature/front/login
-feature/back/auth-api
-feature/ai/recommendation
-
-release/1.0.0
-hotfix/back/auth-error
+    household_observation_daily {
+        uuid id PK
+        string household_id
+    }
+    household_activity_daily {
+        uuid id PK
+        uuid observation_daily_id FK
+    }
+    appliance_usage_session {
+        uuid id PK
+        uuid activity_daily_id FK
+    }
+    session_lake_batch {
+        uuid batch_id PK
+    }
+    session_lake_outbox {
+        bigint event_id PK
+        uuid batch_id FK
+        uuid session_id
+    }
+    analysis_processing_receipt {
+        uuid receipt_id PK
+        string household_id
+    }
+    analysis_receipt_lake_batch {
+        uuid batch_id PK
+    }
+    analysis_receipt_lake_outbox {
+        bigint event_id PK
+        uuid receipt_id FK
+        uuid batch_id FK
+    }
+    lake_batch_run {
+        uuid run_id PK
+    }
+    lake_dataset_version {
+        uuid version_id PK
+        uuid run_id FK
+    }
+    lake_dataset_dependency {
+        uuid dependency_id PK
+        uuid consumer_run_id FK
+    }
+    batch_run {
+        uuid run_id PK
+    }
+    batch_step_run {
+        uuid step_run_id PK
+        uuid run_id FK
+    }
 ```
 
-<br />
-<br />
+> 독립 테이블: `routine_baseline`, `analysis_policy`, `model_artifact`, `analysis_event_emission`, `household_outing_state`, `analysis_daily_completion`, `gold_profile_delivery_outbox`, `selected_scene_*`
 
-## Commit Convention
+### 서비스 간 연결
 
-```text
-type(scope): message
-```
-
-| Type       | 설명                              |
-| ---------- | --------------------------------- |
-| `feat`     | 기능 추가                         |
-| `fix`      | 버그 수정                         |
-| `refactor` | 코드 구조 개선                    |
-| `perf`     | 성능 개선                         |
-| `docs`     | 문서 수정                         |
-| `test`     | 테스트 추가 / 수정                |
-| `style`    | 동작에 영향을 주지 않는 코드 수정 |
-| `chore`    | 설정 / 패키지 / 빌드 / 기타 작업  |
-| `data`     | 데이터셋 / 전처리 변경            |
-
-| Scope     | 대상                       |
-| --------- | -------------------------- |
-| `front`   | Frontend                   |
-| `back`    | Backend                    |
-| `ai`      | AI / ML                    |
-| `data`    | 데이터 수집 / 전처리 / ETL |
-| `bigdata` | 대용량 데이터 처리         |
-| `spark`   | Spark / 분산 처리          |
-| `kafka`   | Kafka / 분산 처리          |
-| `infra`   | Docker / 서버 / 배포 환경  |
-| `common`  | 공통 작업                  |
-
-<br />
-<br />
-
-## Pull Request
-
-PR은 하나의 기능 또는 작업 단위로 생성한다.
-
-```text
-feature/front/login → develop
-feature/recommendation → develop
-
-release/1.0.0 → main
-release/1.0.0 → develop
-
-hotfix/back/auth-error → main
-hotfix/back/auth-error → develop
-```
-
-PR 제목은 Commit Convention과 동일한 형식을 사용한다.
-
-```text
-feat(front): 로그인 페이지 구현
-feat(ai): 추천 모델 구현
-perf(bigdata): 데이터 처리 성능 개선
+```mermaid
+flowchart LR
+    subgraph device_db
+        D1[households.house_id]
+        D2[devices.device_id]
+        D3[user_profiles.keycloak_user_id]
+    end
+    subgraph monitoring_db
+        M1[subjects.household_id]
+        M2[managers.auth_sub]
+        M3[analysis_events.id]
+        M4[household_profiles]
+    end
+    subgraph analysis_db
+        A1[analysis_event_emission.event_id]
+        A2[gold_profile_delivery_outbox]
+        A3[analysis_processing_receipt.device_id]
+    end
+    D1 -.-> M1
+    D3 -. "Kafka 담당자 등록" .-> M2
+    D2 -.-> A3
+    A1 -. "Kafka analysis.*" .-> M3
+    A2 -. "Kafka 프로필 전달" .-> M4
 ```

@@ -6,20 +6,17 @@ NILM 스마트홈 전력 시뮬레이터 경량 웹 컨트롤러 서버 (Web Con
 
 실행 방법:
     python web_server.py
-    (브라우저가 자동으로 http://localhost:8085 로 열립니다)
+    python web_server.py 8089
+    (브라우저가 자동으로 http://127.0.0.1:8085 로 열립니다)
 """
 
+import argparse
+import asyncio
 import os
 import sys
-import json
-import time
-import queue
-import asyncio
 import threading
 import webbrowser
-from datetime import datetime, timezone
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from socketserver import ThreadingMixIn
+from typing import Optional
 
 # Windows SelectorLoop 호환성 설정
 if sys.platform == "win32":
@@ -29,321 +26,167 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.append(CURRENT_DIR)
 
-import aiomqtt
 import simulator
+from server.config import DEFAULT_PORT, ALLOWED_SCENARIOS
+from server.manager import SimulatorManager, ModeConflictError
+from server.e2e_manager import E2EScheduleSessionManager
+from server.request_handler import ThreadedHTTPServer, RequestHandler, create_request_handler
+from engine.tls import resolve_mqtt_config, create_mqtt_tls_context
 
-DEFAULT_PORT = 8085
+# waveform_viewer.html 절대 경로 계산
+HTML_PATH = os.path.join(CURRENT_DIR, "waveform_viewer.html")
 
-# ==========================================
-# 1. 시뮬레이터 백그라운드 관리자 상태
-# ==========================================
-class SimulatorManager:
-    def __init__(self):
-        self.lock = threading.Lock()
-        self.is_running = False
-        self.current_mode = "idle"  # "idle", "peak", "random"
-        self.stop_event = threading.Event()
-        self.worker_thread = None
-        self.subscribers = []  # SSE 큐 목록
-        self.last_metrics = None
-        self.cycle_count = 0
+# 전역 SimulatorManager 및 RequestHandler 핸들
+# 모듈 import 시점에는 지연 생성(None)하여 잘못된 환경변수가 있어도 CLI 옵션이 우선 적용되도록 합니다.
+manager: Optional[SimulatorManager] = None
+handler_class: Optional[type] = None
 
-    def add_subscriber(self, q: queue.Queue):
-        with self.lock:
-            self.subscribers.append(q)
 
-    def remove_subscriber(self, q: queue.Queue):
-        with self.lock:
-            if q in self.subscribers:
-                self.subscribers.remove(q)
+def parse_args(args=None):
+    """웹 서버 실행 커맨드라인 인자 파싱"""
+    parser = argparse.ArgumentParser(
+        description="NILM 스마트홈 전력 시뮬레이터 경량 웹 컨트롤러 서버",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    # 위치 인자 포트 지원 (기존 python web_server.py 8089 호환)
+    parser.add_argument(
+        "port_pos",
+        nargs="?",
+        type=int,
+        default=None,
+        help="웹 서버 바인딩 포트 (위치 인자)"
+    )
+    parser.add_argument(
+        "--web-port",
+        type=int,
+        default=DEFAULT_PORT,
+        help="웹 서버 바인딩 포트"
+    )
+    parser.add_argument(
+        "--bind-host",
+        default="127.0.0.1",
+        help="웹 서버 바인딩 호스트 (기본값: 127.0.0.1. 0.0.0.0 바인딩 시 인증되지 않은 제어 API가 외부에 노출되므로 주의)"
+    )
+    parser.add_argument(
+        "--host",
+        default=None,
+        help="MQTT 브로커 호스트 주소 (미지정 시 MQTT_HOST 환경변수 또는 localhost)"
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=None,
+        help="MQTT 브로커 포트 번호 (미지정 시 MQTT_PORT 환경변수 또는 TLS 여부에 따라 8883/1883)"
+    )
+    parser.add_argument(
+        "--user", "-u",
+        default=None,
+        help="MQTT 인증 사용자명 (미지정 시 MQTT_USER 환경변수 또는 simulator_user)"
+    )
+    parser.add_argument(
+        "--password",
+        default=None,
+        help="MQTT 인증 비밀번호 (미지정 시 MQTT_PASS 환경변수 또는 test1234)"
+    )
+    parser.add_argument(
+        "--tls",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="MQTT TLS 활성화 여부 (--tls 또는 --no-tls, 미지정 시 MQTT_TLS_ENABLED 환경변수)"
+    )
+    parser.add_argument(
+        "--ca-file",
+        default=None,
+        help="MQTT TLS CA 인증서 파일 경로 (미지정 시 MQTT_CA_FILE 환경변수)"
+    )
+    return parser.parse_args(args)
 
-    def broadcast(self, data: dict):
-        with self.lock:
-            self.last_metrics = data
-            for q in list(self.subscribers):
-                try:
-                    q.put_nowait(data)
-                except queue.Full:
-                    pass
 
-    def start(self, scenario: str = "peak", house: str = "H001"):
-        with self.lock:
-            if self.is_running:
-                self.stop()
+def main(args=None):
+    global manager, handler_class
 
-            self.stop_event.clear()
-            self.is_running = True
-            self.current_mode = scenario
-            self.cycle_count = 0
-            self.worker_thread = threading.Thread(
-                target=self._run_async_worker,
-                args=(scenario, house),
-                daemon=True
-            )
-            self.worker_thread.start()
+    parsed = parse_args(args)
+    web_port = parsed.port_pos if parsed.port_pos is not None else parsed.web_port
+    bind_host = parsed.bind_host
 
-    def stop(self):
-        with self.lock:
-            if self.is_running:
-                self.stop_event.set()
-                self.is_running = False
-                self.current_mode = "idle"
+    # 0.0.0.0 바인딩 시 보안 경고 출력
+    if bind_host in ("0.0.0.0", "::"):
+        print(
+            "[보안 경고] 웹 서버가 모든 네트워크 인터페이스(0.0.0.0)에 바인딩되었습니다.\n"
+            "  인증되지 않은 제어 API(/api/start, /api/stop 등)가 외부에 노출될 수 있습니다.\n"
+            "  운영 환경에서는 기본값(127.0.0.1)과 SSH 터널 포트 포워딩을 사용하거나,\n"
+            "  EC2 보안 그룹에서 해당 포트 접근을 엄격히 제한하십시오.",
+            file=sys.stderr,
+            flush=True
+        )
 
-    def _run_async_worker(self, scenario: str, house: str):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # 1. 공통 MQTT 설정 해석 (포트 우선순위: --port > MQTT_PORT > TLS 8883 > 평문 1883)
+    cfg = resolve_mqtt_config(
+        host=parsed.host,
+        port=parsed.port,
+        username=parsed.user,
+        password=parsed.password,
+        tls_enabled=parsed.tls,
+        ca_file=parsed.ca_file,
+    )
+
+    # 2. 기동 시점 TLS 설정 사전 검증 (잘못된 설정 시 서버 시작 전 즉각 실패)
+    if cfg["tls_enabled"]:
         try:
-            loop.run_until_complete(self._worker_loop(scenario, house))
+            create_mqtt_tls_context(cfg["ca_file"])
         except Exception as err:
-            print(f"[WebSimulator] 워커 오류: {err}", flush=True)
-        finally:
-            loop.close()
-            with self.lock:
-                self.is_running = False
-                self.current_mode = "idle"
+            print(f"[WebSimulator 오류] MQTT TLS 설정 검증 실패: {err}", file=sys.stderr, flush=True)
+            sys.exit(1)
 
-    async def _worker_loop(self, scenario: str, house: str):
-        is_peak = (scenario == "peak")
-        target_count = 60 if is_peak else 999999
-        interval = 1.0
+    # 3. 파싱된 MQTT 설정으로 SimulatorManager 및 RequestHandler 생성
+    manager = SimulatorManager(
+        host=cfg["host"],
+        port=cfg["port"],
+        username=cfg["username"],
+        password=cfg["password"],
+        tls_enabled=cfg["tls_enabled"],
+        ca_file=cfg["ca_file"],
+    )
+    e2e_manager = E2EScheduleSessionManager(
+        broker_config=cfg,
+        broadcast_callback=manager.broadcast_external,
+    )
+    shared_start_lock = threading.Lock()
+    handler_class = create_request_handler(
+        manager,
+        html_path=HTML_PATH,
+        e2e_manager=e2e_manager,
+        shared_start_lock=shared_start_lock,
+    )
 
-        # 상태 초기화
-        simulator.init_simulation_states([house])
+    server_address = (bind_host, web_port)
+    httpd = ThreadedHTTPServer(server_address, handler_class)
 
-        print(f"[WebSimulator] MQTT 브로커({simulator.DEFAULT_BROKER_HOST}:{simulator.DEFAULT_BROKER_PORT}) 연결 중...", flush=True)
-
-        async with aiomqtt.Client(
-            hostname=simulator.DEFAULT_BROKER_HOST,
-            port=simulator.DEFAULT_BROKER_PORT,
-            username=simulator.DEFAULT_BROKER_USER,
-            password=simulator.DEFAULT_BROKER_PASS,
-            keepalive=60,
-            timeout=5
-        ) as client:
-            print(f"[WebSimulator] MQTT 연결 성공! 실시간 발행 시작 (시나리오: {scenario}, 대상: {house})", flush=True)
-
-            cycle = 0
-            while not self.stop_event.is_set():
-                cycle_start = time.time()
-                now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-                cycle += 1
-                self.cycle_count = cycle
-
-                # 1. 타임라인 이벤트 주입 (피크 시연 모드일 때)
-                event_desc = None
-                if is_peak:
-                    event_desc = simulator.inject_peak_scenario_event(cycle, house)
-
-                # 2. 물리 계측 및 MQTT 발행 (allow_random: peak 모드는 False)
-                res = await simulator.publish_house_power(
-                    client=client,
-                    house=house,
-                    now_iso=now_iso,
-                    qos=1,
-                    allow_random=(not is_peak)
-                )
-
-                # 3. 실시간 UI 동기화용 패킷 생성 및 SSE 브로드캐스트
-                # simulator.calculate_main_panel_metrics 캐시된 값 조회
-                env = simulator.house_states[house]
-                metrics = simulator.calculate_main_panel_metrics(house, allow_random=(not is_peak))
-
-                broadcast_data = {
-                    "sec": cycle,
-                    "now_iso": now_iso,
-                    "house": house,
-                    "totalP": metrics["active_power"],
-                    "totalQ": metrics["reactive_power"],
-                    "apparentS": metrics["apparent_power"],
-                    "pf": metrics["power_factor"],
-                    "voltage": metrics["voltage"],
-                    "currentA": metrics["current"],
-                    "activeNames": metrics["active_devices"],
-                    "eventNoticeText": event_desc,
-                    "mode": scenario
-                }
-                self.broadcast(broadcast_data)
-
-                # 터미널 콘솔 로그 출력
-                status_tag = "대기"
-                if metrics["active_power"] >= 3000.0:
-                    status_tag = "피크 경보 (3,000W+)"
-                elif metrics["active_power"] >= 1000.0:
-                    status_tag = "가전 가동 중"
-
-                notice_str = f" <== [{event_desc}]" if event_desc else ""
-                print(f"[WebSimulator] (T+{cycle:02d}s) {house} 전력: {metrics['active_power']:7.1f} W | {status_tag}{notice_str}", flush=True)
-
-                if target_count > 0 and cycle >= target_count:
-                    print(f"[WebSimulator] 목표 사이클({target_count}회) 완주, 자동 정지합니다.", flush=True)
-                    break
-
-                elapsed = time.time() - cycle_start
-                sleep_time = max(0.0, interval - elapsed)
-                await asyncio.sleep(sleep_time)
-
-
-manager = SimulatorManager()
-
-
-# ==========================================
-# 2. 멀티스레드 HTTP 핸들러 및 SSE 엔드포인트
-# ==========================================
-class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    daemon_threads = True
-
-
-class RequestHandler(BaseHTTPRequestHandler):
-    def log_message(self, format, *args):
-        # 불필요한 표준 콘솔 로그 억제
-        pass
-
-    def do_GET(self):
-        url_path = self.path.split('?')[0]
-
-        if url_path in ("/", "/index.html", "/waveform_viewer.html"):
-            # 1. waveform_viewer.html 파일 제공
-            html_path = os.path.join(CURRENT_DIR, "waveform_viewer.html")
-            try:
-                with open(html_path, "r", encoding="utf-8") as f:
-                    content = f.read().encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(content)))
-                self.end_headers()
-                self.wfile.write(content)
-            except Exception as e:
-                self.send_error(500, f"HTML 파일 로드 실패: {e}")
-
-        elif url_path == "/api/status":
-            # 2. 현재 시뮬레이터 실행 상태 확인
-            resp_data = {
-                "is_running": manager.is_running,
-                "current_mode": manager.current_mode,
-                "cycle_count": manager.cycle_count,
-                "broker": f"{simulator.DEFAULT_BROKER_HOST}:{simulator.DEFAULT_BROKER_PORT}",
-                "last_metrics": manager.last_metrics
-            }
-            content = json.dumps(resp_data).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Content-Length", str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
-
-        elif url_path == "/api/stream":
-            # 3. Server-Sent Events (SSE) 실시간 데이터 스트리밍
-            self.send_response(200)
-            self.send_header("Content-Type", "text/event-stream")
-            self.send_header("Cache-Control", "no-cache")
-            self.send_header("Connection", "keep-alive")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.end_headers()
-
-            q = queue.Queue(maxsize=100)
-            manager.add_subscriber(q)
-
-            try:
-                # 초기 연결 확인 핑
-                self.wfile.write(b": keepalive\n\n")
-                self.wfile.flush()
-
-                while True:
-                    try:
-                        # 1초 타임아웃으로 대기
-                        data = q.get(timeout=1.5)
-                        msg = f"data: {json.dumps(data)}\n\n".encode("utf-8")
-                        self.wfile.write(msg)
-                        self.wfile.flush()
-                    except queue.Empty:
-                        # 하트비트 핑
-                        self.wfile.write(b": heartbeat\n\n")
-                        self.wfile.flush()
-            except (ConnectionResetError, BrokenPipeError):
-                pass
-            finally:
-                manager.remove_subscriber(q)
-
-        else:
-            self.send_error(404, "Not Found")
-
-    def do_POST(self):
-        url_path = self.path.split('?')[0]
-
-        if url_path == "/api/start":
-            # 1. 시뮬레이션 시작 (MQTT 발행 + 실시간 스트림)
-            content_length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
-            try:
-                params = json.loads(body)
-            except Exception:
-                params = {}
-
-            scenario = params.get("scenario", "peak")
-            house = params.get("house", "H001")
-
-            manager.start(scenario=scenario, house=house)
-
-            resp = {"status": "started", "scenario": scenario, "house": house}
-            content = json.dumps(resp).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Content-Length", str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
-
-        elif url_path == "/api/stop":
-            # 2. 시뮬레이션 중지
-            manager.stop()
-            resp = {"status": "stopped"}
-            content = json.dumps(resp).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Content-Length", str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
-
-        else:
-            self.send_error(404, "Not Found")
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
-
-
-def main():
-    port = DEFAULT_PORT
-    if len(sys.argv) > 1 and sys.argv[1].isdigit():
-        port = int(sys.argv[1])
-
-    server_address = ("", port)
-    httpd = ThreadedHTTPServer(server_address, RequestHandler)
-
-    url = f"http://localhost:{port}"
+    url = f"http://{bind_host}:{web_port}"
+    tls_desc = f" (TLS ON | CA: {cfg['ca_file']})" if cfg["tls_enabled"] else " (TLS OFF (평문))"
     print(f"============================================================")
     print(f" NILM 전력 시뮬레이터 인터랙티브 웹 서버 가동")
     print(f" - 대시보드 URL : {url}")
-    print(f" - MQTT 브로커  : {simulator.DEFAULT_BROKER_HOST}:{simulator.DEFAULT_BROKER_PORT}")
+    print(f" - 바인딩 호스트: {bind_host}")
+    print(f" - MQTT 브로커  : {cfg['host']}:{cfg['port']}{tls_desc}")
     print(f" - 기능: 화면 버튼 클릭 시 실제 MQTT 발행 및 차트 실시간 렌더링")
     print(f" - 서버 종료: Ctrl + C")
     print(f"============================================================", flush=True)
 
-    # 기본 브라우저 자동 오픈
-    try:
-        webbrowser.open(url)
-    except Exception:
-        pass
+    # 기본 브라우저 자동 오픈 (로컬 루프백 접속일 때만 오픈)
+    if os.getenv("BROWSER") != "none" and bind_host in ("127.0.0.1", "localhost"):
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
 
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\n웹 서버를 정지합니다.", flush=True)
+    finally:
+        if e2e_manager is not None:
+            e2e_manager.shutdown(timeout_sec=5.0)
         manager.stop()
         httpd.server_close()
 

@@ -1,0 +1,37 @@
+# Integration fragment for the infrastructure owner. Uses an existing network.
+name: nilm-scene
+services:
+  scene-worker:
+    image: ${SCENE_INFERENCE_IMAGE:?Set immutable inference image tag or digest}
+    env_file: ${SCENE_ENV_FILE:?Set worker runtime env file}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    networks: [scene]
+  fixture:
+    image: ${SCENE_FIXTURE_IMAGE:?Set immutable fixture image tag or digest}
+    profiles: [replay]
+    env_file: ${SCENE_PUBLISH_ENV_FILE:?Set MQTT credentials env file}
+    command:
+      - --appliance
+      - ${SCENE_APPLIANCE:-kettle}
+      - --household
+      - ${SCENE_HOUSEHOLD:?Set test household}
+      - --run-id
+      - ${SCENE_RUN_ID:?Set matching worker run}
+      - --start-time
+      - ${SCENE_START_TIME:?Set explicit aware start time}
+      - --mqtt-host
+      - ${SCENE_MQTT_HOST:?Set TLS broker host}
+      - --ca-file
+      - /certs/ca.crt
+      - --output
+      - /evidence/${SCENE_RUN_ID}
+    volumes:
+      - ${SCENE_CA_FILE:?Set broker CA file}:/certs/ca.crt:ro
+      - ${SCENE_EVIDENCE_DIR:?Set writable report directory}:/evidence
+    networks: [scene]
+networks:
+  scene:
+    external: true
+    name: ${SCENE_NETWORK:?Set existing network}

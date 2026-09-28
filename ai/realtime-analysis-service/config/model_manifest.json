@@ -1,0 +1,61 @@
+{
+  "model_name": "nilm-tcn",
+  "version": "v1.0.0",
+  "framework": "pytorch",
+  "input": {
+    "dtype": "float32",
+    "shape": [-1, 4, 299],
+    "sample_hz": 1,
+    "time_order": "oldest_to_latest",
+    "features": [
+      {
+        "index": 0,
+        "name": "active_power",
+        "unit": "W",
+        "mean": 0.0,
+        "std": 1.0
+      },
+      {
+        "index": 1,
+        "name": "reactive_power",
+        "unit": "var",
+        "mean": 0.0,
+        "std": 1.0
+      },
+      {
+        "index": 2,
+        "name": "power_factor",
+        "unit": null,
+        "mean": 0.0,
+        "std": 1.0
+      },
+      {
+        "index": 3,
+        "name": "current",
+        "unit": "A",
+        "mean": 0.0,
+        "std": 1.0
+      }
+    ]
+  },
+  "preprocessing": {
+    "normalization": {
+      "method": "standardization",
+      "formula": "(x - mean) / std",
+      "applied_by": "realtime-analysis-service"
+    }
+  },
+  "output": {
+    "dtype": "float32",
+    "shape": [-1, 6],
+    "activation": "sigmoid",
+    "appliances": [
+      {"index": 0, "appliance_type": "KETTLE", "threshold": 0.5},
+      {"index": 1, "appliance_type": "INDUCTION", "threshold": 0.5},
+      {"index": 2, "appliance_type": "IRON", "threshold": 0.5},
+      {"index": 3, "appliance_type": "MICROWAVE", "threshold": 0.5},
+      {"index": 4, "appliance_type": "HAIR_DRYER", "threshold": 0.5},
+      {"index": 5, "appliance_type": "VACUUM_CLEANER", "threshold": 0.5}
+    ]
+  }
+}

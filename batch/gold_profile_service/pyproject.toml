@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gold-profile-service"
+version = "0.1.0"
+description = "Versioned Gold routine baseline and household statistical profile batch"
+requires-python = ">=3.11"
+dependencies = [
+    "power-silver-service==0.1.0",
+    "realtime-analysis-service==0.1.0",
+    "pyspark==3.5.6",
+    "hdfs>=2.7,<3",
+    "confluent-kafka==2.6.0",
+    "sqlalchemy>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "pytest-cov>=6,<7"]
+
+[project.scripts]
+gold-profile = "gold_profile.cli:main"
+household-report = "household_report.cli:main"
+gold-experiment = "gold_profile.experiment:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../power_silver_service/src", "../../ai/realtime-analysis-service/src"]
+testpaths = ["tests"]
+markers = [
+    "spark: requires a working local PySpark runtime",
+    "e2e: local end-to-end run; needs GOLD_E2E_DATABASE_URL (see tests/test_e2e_local_pipeline.py)",
+]
+

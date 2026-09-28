@@ -1,6 +1,7 @@
 package com.nilm.device.common;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ public record ErrorResponse(
 
     public static ErrorResponse of(int status, String code, String message, String path,
                                    List<FieldErrorDetail> errors) {
-        return new ErrorResponse(OffsetDateTime.now(), status, code, message, path,
+        return new ErrorResponse(OffsetDateTime.now(ZoneOffset.UTC), status, code, message, path,
                 errors == null ? List.of() : errors);
     }
 }

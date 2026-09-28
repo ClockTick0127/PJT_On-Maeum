@@ -1,0 +1,112 @@
+# Independent local demonstration project. Host access is loopback only.
+name: nilm-r3-demo
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: nilm_demo
+      POSTGRES_PASSWORD: ${R3_DB_PASSWORD:?Set R3_DB_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ../postgres/01-create-databases.sql:/docker-entrypoint-initdb.d/01-create-databases.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U nilm_demo -d postgres"]
+      interval: 5s
+      retries: 20
+  kafka:
+    image: apache/kafka:3.9.0
+    environment:
+      KAFKA_NODE_ID: 1
+      CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: INTERNAL://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: [CMD-SHELL, "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --list"]
+      interval: 10s
+      retries: 20
+  kafka-init:
+    image: apache/kafka:3.9.0
+    depends_on:
+      kafka: {condition: service_healthy}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        for topic in power.scene.v2 analysis.scene.v2 dlq.scene; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists --topic "$$topic" --partitions 1 --replication-factor 1
+        done
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["127.0.0.1:18884:1883"]
+    volumes: ["./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
+  bridge:
+    build: ../mqtt-kafka-bridge
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 1883
+      MQTT_USER: ""
+      MQTT_TOPIC: v1/power/demo/+/main
+      MQTT_CLIENT_ID: r3-bridge
+      KAFKA_BOOTSTRAP: kafka:19092
+      KAFKA_TOPIC: power.scene.v2
+    depends_on:
+      kafka-init: {condition: service_completed_successfully}
+      mosquitto: {condition: service_started}
+  analysis:
+    build:
+      context: ../../ai/realtime-analysis-service
+      target: inference
+    environment:
+      MODEL_BACKEND: selected_scene
+      MODEL_ASSET_ROOT: /assets
+      MODEL_APPLIANCE: ${R3_APPLIANCE:-kettle}
+      MODEL_HOUSEHOLD_ID: ${R3_HOUSEHOLD_ID:-r3-kettle}
+      MODEL_DEVICE: cpu
+      MODEL_DTYPE: float32
+      ANALYSIS_RUN_ID: ${R3_RUN_ID:?Set a fresh R3_RUN_ID}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_INPUT_TOPIC: power.scene.v2
+      KAFKA_GROUP_ID: r3-${R3_RUN_ID}
+      KAFKA_DLQ_TOPIC: dlq.scene
+      KAFKA_SCENE_SNAPSHOT_TOPIC: analysis.scene.v2
+      DATABASE_HOST: postgres
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: nilm_demo
+      DATABASE_PASSWORD: ${R3_DB_PASSWORD}
+    volumes: ["../../ai/assets/nilm_r3:/assets:ro"]
+    depends_on:
+      kafka-init: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+  monitoring:
+    build: ../../backend/monitoring-service
+    ports: ["127.0.0.1:18084:8082"]
+    environment:
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/monitoring_db
+      POSTGRES_USER: nilm_demo
+      POSTGRES_PASSWORD: ${R3_DB_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_CONSUMER_ENABLED: "false"
+      APP_SCENE_DEMO_ENABLED: "true"
+      APP_SCENE_DEMO_AUTO_STARTUP: "true"
+      APP_SECURITY_ENABLED: "false"
+      TEST_DATA_ENABLED: "false"
+      WEB_PUSH_ENABLED: "false"
+      WEB_PUSH_VAPID_PUBLIC_KEY: ""
+      WEB_PUSH_VAPID_PRIVATE_KEY: ""
+      APP_RISK_SCHEDULER_ENABLED: "false"
+      APP_AWAY_MODE_SCHEDULER_ENABLED: "false"
+      APP_POWER_USAGE_SNAPSHOT_STORE: memory
+    depends_on:
+      kafka-init: {condition: service_completed_successfully}
+      postgres: {condition: service_healthy}
+volumes:
+  postgres_data:

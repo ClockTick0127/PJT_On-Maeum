@@ -1,0 +1,43 @@
+groups:
+  - name: ec2-b-disk-retention
+    rules:
+      - alert: Ec2BDiskUsageWarning
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_size_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}) >= 70
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: EC2-B root disk usage is at least 70%
+          description: Stop growth tests and inspect Kafka, HDFS, PostgreSQL, and Docker usage.
+      - alert: Ec2BDiskUsageCritical
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_size_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}) >= 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: EC2-B root disk usage is at least 80%
+          description: Halt simulators and load tests; expand storage instead of deleting unclosed Bronze data.
+      - alert: Ec2BDiskUsageEmergency
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_size_bytes{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}) >= 90
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: EC2-B root disk usage is at least 90%
+          description: Treat this as a capacity incident and expand the volume immediately.
+      - alert: Ec2BInodeUsageWarning
+        expr: |
+          100 * (1 - node_filesystem_files_free{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}
+          / node_filesystem_files{environment="ec2-b",mountpoint="/",fstype!~"tmpfs|overlay"}) >= 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: EC2-B root filesystem inode usage is at least 80%
+          description: Inspect HDFS small files and Docker storage.

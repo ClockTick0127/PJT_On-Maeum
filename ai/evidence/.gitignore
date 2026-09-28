@@ -1,0 +1,4 @@
+# Full traces remain local; summaries and reproducible runners are versioned.
+*.jsonl
+**/runtime.json
+local-six-scenes/

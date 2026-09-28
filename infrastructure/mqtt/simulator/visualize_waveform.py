@@ -27,6 +27,7 @@ if CURRENT_DIR not in sys.path:
     sys.path.append(CURRENT_DIR)
 
 import simulator
+import scenarios
 
 
 def export_to_csv(records: list[dict], filepath: str) -> None:
@@ -136,6 +137,56 @@ def generate_random_timeline(total_seconds: int = 300) -> list[dict]:
     records = []
     for t in range(total_seconds):
         m = simulator.calculate_main_panel_metrics(house)
+        records.append({
+            "t": t,
+            "active_power": m["active_power"],
+            "reactive_power": m["reactive_power"],
+            "apparent_power": m["apparent_power"],
+            "power_factor": m["power_factor"],
+            "voltage": m["voltage"],
+            "current": m["current"],
+            "devices": list(m["active_devices"])
+        })
+    return records
+
+
+def generate_routine_missed_timeline(total_seconds: int = 300) -> list[dict]:
+    """
+    루틴 누락 이상치(ROUTINE_MISSED) 파형 생성
+    - H001 가구가 08:10 KST 이후에도 전자레인지를 가동하지 않고
+    - 순수 대기전력(상시 기저부하 ~50W + 냉장고 컴프레서 주기)만 유지하는 파형
+    """
+    house = "H001"
+    simulator.init_simulation_states([house])
+    records = []
+    for t in range(total_seconds):
+        m = simulator.calculate_main_panel_metrics(house, allow_random=False)
+        records.append({
+            "t": t,
+            "active_power": m["active_power"],
+            "reactive_power": m["reactive_power"],
+            "apparent_power": m["apparent_power"],
+            "power_factor": m["power_factor"],
+            "voltage": m["voltage"],
+            "current": m["current"],
+            "devices": list(m["active_devices"])
+        })
+    return records
+
+
+def generate_peak_timeline(total_seconds: int = 60) -> list[dict]:
+    """
+    10초 피크(3,000W+) 시연 파형 생성
+    - t=10s: 전기포트(1700W) + 인덕션(1600W) 동시 기동 -> 3,300W+ 돌파
+    - t=31s: 전기포트 종료
+    - t=45s: 인덕션 종료 -> 정상 대기 복귀
+    """
+    house = "H001"
+    simulator.init_simulation_states([house])
+    records = []
+    for t in range(total_seconds):
+        simulator.inject_peak_scenario_event(t + 1, house)
+        m = simulator.calculate_main_panel_metrics(house, allow_random=False)
         records.append({
             "t": t,
             "active_power": m["active_power"],
@@ -636,25 +687,47 @@ def build_html_report(records: list[dict], mode_name: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="NILM 시뮬레이터 파형 시각화 도구")
-    parser.add_argument("--seconds", type=int, default=300, help="시뮬레이션 시간(초) (기본값: 300초)")
-    parser.add_argument("--random", action="store_true", help="데모 시나리오 대신 순수 확률 랜덤 시뮬레이션 실행")
+    parser.add_argument(
+        "--scenario", "-s",
+        default="demo",
+        choices=["demo", "peak", "routine_missed", "random"],
+        help="시각화 대상 시나리오 (demo: 6대가전 300초, peak: 10초피크 60초, routine_missed: 루틴누락 대기전력 300초, random: 랜덤)"
+    )
+    parser.add_argument("--seconds", type=int, default=None, help="시뮬레이션 시간(초) (기본값: 시나리오별 권장값)")
+    parser.add_argument("--random", action="store_true", help="순수 확률 랜덤 시뮬레이션 실행 (--scenario random과 동일)")
+    parser.add_argument("--output", "-o", default="waveform_report.html", help="생성할 HTML 리포트 파일명 (기본값: waveform_report.html)")
     parser.add_argument("--no-browser", action="store_true", help="브라우저 자동 열기 비활성화")
     parser.add_argument("--csv", nargs="?", const="waveform_data.csv", help="생성된 시뮬레이션 데이터를 CSV 파일로도 함께 저장 (기본 파일명: waveform_data.csv)")
     args = parser.parse_args()
 
-    print(f"[1/3] 시뮬레이터 파형 데이터 생성 중... (총 {args.seconds}초)", flush=True)
+    scenario = "random" if args.random else args.scenario
+    default_seconds = {
+        "demo": 300,
+        "peak": 60,
+        "routine_missed": 300,
+        "random": 300
+    }
+    seconds = args.seconds if args.seconds is not None else default_seconds.get(scenario, 300)
 
-    if args.random:
+    print(f"[1/3] 시뮬레이터 파형 데이터 생성 중... (시나리오: {scenario}, 총 {seconds}초)", flush=True)
+
+    if scenario == "random":
         mode_name = "확률 기반 랜덤 시뮬레이션"
-        records = generate_random_timeline(args.seconds)
+        records = generate_random_timeline(seconds)
+    elif scenario == "peak":
+        mode_name = "10초 피크 시연 시나리오 (3,000W+ 초과 및 해소)"
+        records = generate_peak_timeline(seconds)
+    elif scenario == "routine_missed":
+        mode_name = "루틴 누락 이상치 시나리오 (08:10 KST 기준 전자레인지 미가동 / 순수 대기전력 유지)"
+        records = generate_routine_missed_timeline(seconds)
     else:
         mode_name = "AI 모델 검증용 대표 데모 시나리오 (전기포트·전자레인지·인덕션·청소기)"
-        records = generate_demo_timeline(args.seconds)
+        records = generate_demo_timeline(seconds)
 
     print(f"[2/3] 인터랙티브 HTML 대시보드 리포트 작성 중...", flush=True)
     html_content = build_html_report(records, mode_name)
 
-    output_path = os.path.join(CURRENT_DIR, "waveform_viewer.html")
+    output_path = os.path.abspath(args.output) if os.path.isabs(args.output) else os.path.join(CURRENT_DIR, args.output)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 

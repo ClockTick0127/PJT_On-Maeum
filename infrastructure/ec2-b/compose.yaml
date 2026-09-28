@@ -65,15 +65,213 @@ services:
         condition: service_healthy
     environment:
       KAFKA_RAW_TOPIC: ${KAFKA_RAW_TOPIC:-power.raw.v1}
+      KAFKA_ANALYSIS_EVENT_TOPIC: ${KAFKA_ANALYSIS_EVENT_TOPIC:-analysis.event.v1}
+      KAFKA_ANALYSIS_ACTIVITY_TOPIC: ${KAFKA_ANALYSIS_ACTIVITY_TOPIC:-analysis.activity.v1}
+      KAFKA_ANALYSIS_DATA_QUALITY_TOPIC: ${KAFKA_ANALYSIS_DATA_QUALITY_TOPIC:-analysis.data-quality.v1}
+      KAFKA_ANALYSIS_SNAPSHOT_TOPIC: ${KAFKA_ANALYSIS_SNAPSHOT_TOPIC:-analysis.snapshot.v1}
+      KAFKA_SCENE_SNAPSHOT_TOPIC: ${KAFKA_SCENE_SNAPSHOT_TOPIC:-analysis.scene.v2}
+      KAFKA_ANALYSIS_DLQ_TOPIC: ${KAFKA_ANALYSIS_DLQ_TOPIC:-dlq.analysis}
+      KAFKA_MONITORING_DLQ_TOPIC: ${KAFKA_MONITORING_DLQ_TOPIC:-dlq.monitoring}
+      KAFKA_OUTING_EVENT_TOPIC: ${KAFKA_OUTING_EVENT_TOPIC:-monitoring.household-presence.v1}
+      KAFKA_HOUSEHOLD_PROFILE_TOPIC: ${KAFKA_HOUSEHOLD_PROFILE_TOPIC:-gold.household-profile.v1}
+      KAFKA_MANAGER_REGISTERED_TOPIC: ${KAFKA_MANAGER_REGISTERED_TOPIC:-device.manager-registered.v1}
       KAFKA_PARTITIONS: ${KAFKA_PARTITIONS:-24}
+      KAFKA_RAW_RETENTION_MS: ${KAFKA_RAW_RETENTION_MS:-604800000}
+      KAFKA_RAW_RETENTION_BYTES: ${KAFKA_RAW_RETENTION_BYTES:-2147483648}
+      KAFKA_RAW_SEGMENT_BYTES: ${KAFKA_RAW_SEGMENT_BYTES:-268435456}
+      KAFKA_ANALYSIS_RETENTION_MS: ${KAFKA_ANALYSIS_RETENTION_MS:-604800000}
+      KAFKA_ANALYSIS_RETENTION_BYTES: ${KAFKA_ANALYSIS_RETENTION_BYTES:-134217728}
+      KAFKA_ANALYSIS_SEGMENT_BYTES: ${KAFKA_ANALYSIS_SEGMENT_BYTES:-134217728}
+      KAFKA_DLQ_RETENTION_MS: ${KAFKA_DLQ_RETENTION_MS:-2592000000}
+      KAFKA_DLQ_RETENTION_BYTES: ${KAFKA_DLQ_RETENTION_BYTES:-268435456}
+      KAFKA_DLQ_SEGMENT_BYTES: ${KAFKA_DLQ_SEGMENT_BYTES:-134217728}
     entrypoint: ["/bin/bash", "-ec"]
     command:
       - |
-        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists --topic "$$KAFKA_RAW_TOPIC" --partitions "$$KAFKA_PARTITIONS" --replication-factor 1
+        configure_topic() {
+          topic="$$1"
+          retention_ms="$$2"
+          retention_bytes="$$3"
+          segment_bytes="$$4"
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists --topic "$$topic" --partitions "$$KAFKA_PARTITIONS" --replication-factor 1
+          /opt/kafka/bin/kafka-configs.sh --bootstrap-server kafka:19092 --entity-type topics --entity-name "$$topic" --alter --add-config "cleanup.policy=delete,retention.ms=$$retention_ms,retention.bytes=$$retention_bytes,segment.bytes=$$segment_bytes"
+          /opt/kafka/bin/kafka-configs.sh --bootstrap-server kafka:19092 --entity-type topics --entity-name "$$topic" --describe
+        }
+        configure_topic "$$KAFKA_RAW_TOPIC" "$$KAFKA_RAW_RETENTION_MS" "$$KAFKA_RAW_RETENTION_BYTES" "$$KAFKA_RAW_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_ANALYSIS_EVENT_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_ANALYSIS_ACTIVITY_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_ANALYSIS_DATA_QUALITY_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_ANALYSIS_SNAPSHOT_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        # selected_scene 워커 전용 출력. 평소에는 비어 있고, 켤 때 미리 있어야 한다.
+        configure_topic "$$KAFKA_SCENE_SNAPSHOT_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_ANALYSIS_DLQ_TOPIC" "$$KAFKA_DLQ_RETENTION_MS" "$$KAFKA_DLQ_RETENTION_BYTES" "$$KAFKA_DLQ_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_MONITORING_DLQ_TOPIC" "$$KAFKA_DLQ_RETENTION_MS" "$$KAFKA_DLQ_RETENTION_BYTES" "$$KAFKA_DLQ_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_OUTING_EVENT_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        configure_topic "$$KAFKA_HOUSEHOLD_PROFILE_TOPIC" "$$KAFKA_ANALYSIS_RETENTION_MS" "$$KAFKA_ANALYSIS_RETENTION_BYTES" "$$KAFKA_ANALYSIS_SEGMENT_BYTES"
+        # 담당자 가입은 드물지만 사라지면 그 사람이 서비스를 못 쓴다. DLQ만큼 길게 둔다.
+        configure_topic "$$KAFKA_MANAGER_REGISTERED_TOPIC" "$$KAFKA_DLQ_RETENTION_MS" "$$KAFKA_DLQ_RETENTION_BYTES" "$$KAFKA_DLQ_SEGMENT_BYTES"
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_RAW_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_OUTING_EVENT_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_ANALYSIS_EVENT_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_ANALYSIS_ACTIVITY_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_ANALYSIS_DATA_QUALITY_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_ANALYSIS_SNAPSHOT_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_SCENE_SNAPSHOT_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_ANALYSIS_DLQ_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_MONITORING_DLQ_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_HOUSEHOLD_PROFILE_TOPIC"
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --describe --topic "$$KAFKA_MANAGER_REGISTERED_TOPIC"
+
+  realtime-analysis-service:
+    image: ${REALTIME_ANALYSIS_IMAGE:?REALTIME_ANALYSIS_IMAGE required}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_INPUT_TOPIC: ${KAFKA_RAW_TOPIC:-power.raw.v1}
+      KAFKA_DLQ_TOPIC: ${KAFKA_ANALYSIS_DLQ_TOPIC:-dlq.analysis}
+      KAFKA_ANALYSIS_EVENT_TOPIC: ${KAFKA_ANALYSIS_EVENT_TOPIC:-analysis.event.v1}
+      KAFKA_ANALYSIS_ACTIVITY_TOPIC: ${KAFKA_ANALYSIS_ACTIVITY_TOPIC:-analysis.activity.v1}
+      KAFKA_ANALYSIS_DATA_QUALITY_TOPIC: ${KAFKA_ANALYSIS_DATA_QUALITY_TOPIC:-analysis.data-quality.v1}
+      KAFKA_ANALYSIS_SNAPSHOT_TOPIC: ${KAFKA_ANALYSIS_SNAPSHOT_TOPIC:-analysis.snapshot.v1}
+      KAFKA_SCENE_SNAPSHOT_TOPIC: ${KAFKA_SCENE_SNAPSHOT_TOPIC:-analysis.scene.v2}
+      KAFKA_OUTING_EVENT_TOPIC: ${KAFKA_OUTING_EVENT_TOPIC:-monitoring.household-presence.v1}
+      KAFKA_GROUP_ID: ${ANALYSIS_KAFKA_GROUP_ID:-realtime-analysis-service-v1}
+      KAFKA_AUTO_OFFSET_RESET: ${ANALYSIS_KAFKA_AUTO_OFFSET_RESET:-latest}
+      KAFKA_PARTITION_ASSIGNMENT_STRATEGY: ${ANALYSIS_KAFKA_PARTITION_ASSIGNMENT_STRATEGY:-cooperative-sticky}
+      # 정적 멤버십. 인스턴스마다 다른 값을 주면 재기동 시 리밸런스를 건너뛴다.
+      KAFKA_GROUP_INSTANCE_ID: ${ANALYSIS_KAFKA_GROUP_INSTANCE_ID:-}
+      KAFKA_OUTING_GROUP_INSTANCE_ID: ${ANALYSIS_KAFKA_OUTING_GROUP_INSTANCE_ID:-}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      # configurable-inference 이미지는 fake/real/selected_scene을 런타임에 선택한다.
+      # real과 selected_scene 가중치는 이미지 안 /assets에 포함되어 있다.
+      MODEL_WINDOW_SIZE: ${ANALYSIS_MODEL_WINDOW_SIZE:-255}
+      MODEL_BACKEND: ${ANALYSIS_MODEL_BACKEND:-fake}
+      MODEL_ASSET_ROOT: ${ANALYSIS_MODEL_ASSET_ROOT:-/assets}
+      MODEL_DEVICE: ${ANALYSIS_MODEL_DEVICE:-cpu}
+      MODEL_DTYPE: ${ANALYSIS_MODEL_DTYPE:-float32}
+      MODEL_THREADS: ${ANALYSIS_MODEL_THREADS:-1}
+      # selected_scene 전용. 이 백엔드는 전용 입력 토픽·컨슈머 그룹·ANALYSIS_RUN_ID를
+      # 함께 요구하므로, 상시 분석과 같은 컨테이너에서 동시에 돌릴 수 없다.
+      MODEL_APPLIANCE: ${ANALYSIS_MODEL_APPLIANCE:-kettle}
+      MODEL_HOUSEHOLD_ID: ${ANALYSIS_MODEL_HOUSEHOLD_ID:-}
+      SCENE_EVENTS_ENABLED: ${ANALYSIS_SCENE_EVENTS_ENABLED:-false}
+      SCENE_POLICY_ID: ${ANALYSIS_SCENE_POLICY_ID:-selected-test-v1}
+      SCENE_TEST_HOUSEHOLD_ID: ${ANALYSIS_SCENE_TEST_HOUSEHOLD_ID:-}
+      SCENE_RISK_THRESHOLD_SECONDS: ${ANALYSIS_SCENE_RISK_THRESHOLD_SECONDS:-}
+      MODEL_MANIFEST_FILE: config/model_manifest.json
+      BASELINE_FILE: config/baselines.json
+      FAKE_ON_APPLIANCES: ${ANALYSIS_FAKE_ON_APPLIANCES:-}
+      ANALYSIS_SCORE_THRESHOLD: ${ANALYSIS_SCORE_THRESHOLD:-80}
+      ANALYSIS_TIMEZONE: ${ANALYSIS_TIMEZONE:-Asia/Seoul}
+      ANALYSIS_RUN_ID: ${ANALYSIS_RUN_ID:-realtime-v1}
+      ANALYSIS_PIPELINE_VERSION: ${ANALYSIS_PIPELINE_VERSION:-1}
+      ANALYSIS_EXPECTED_SAMPLES_PER_DAY: ${ANALYSIS_EXPECTED_SAMPLES_PER_DAY:-86400}
+      ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      ROUTINE_BASELINE_REFRESH_SECONDS: ${ROUTINE_BASELINE_REFRESH_SECONDS:-60}
+      APPLIANCE_ON_CONFIRMATION_SAMPLES: ${ANALYSIS_APPLIANCE_ON_CONFIRMATION_SAMPLES:-3}
+      APPLIANCE_OFF_CONFIRMATION_SAMPLES: ${ANALYSIS_APPLIANCE_OFF_CONFIRMATION_SAMPLES:-3}
+      APPLIANCE_OFF_THRESHOLD_MARGIN: ${ANALYSIS_APPLIANCE_OFF_THRESHOLD_MARGIN:-0.05}
+      ANALYSIS_DATA_GAP_THRESHOLD_SECONDS: ${ANALYSIS_DATA_GAP_THRESHOLD_SECONDS:-120}
+      ANALYSIS_DATA_QUALITY_POLL_SECONDS: ${ANALYSIS_DATA_QUALITY_POLL_SECONDS:-5}
+      ANALYSIS_DATA_RECOVERY_CONFIRMATION_SAMPLES: ${ANALYSIS_DATA_RECOVERY_CONFIRMATION_SAMPLES:-3}
+      LOG_LEVEL: ${ANALYSIS_LOG_LEVEL:-INFO}
+    ports:
+      - "${EC2_B_PRIVATE_IP:?EC2_B_PRIVATE_IP required}:8000:8000"
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=5).close()"
+      interval: 10s
+      timeout: 10s
+      start_period: 30s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  aggregation-service:
+    image: ${AGGREGATION_IMAGE:?AGGREGATION_IMAGE required}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 5m
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8000
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_ANALYSIS_EVENT_TOPIC: ${KAFKA_ANALYSIS_EVENT_TOPIC:-analysis.event.v1}
+      KAFKA_ANALYSIS_ACTIVITY_TOPIC: ${KAFKA_ANALYSIS_ACTIVITY_TOPIC:-analysis.activity.v1}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      BASELINE_FILE: config/baselines.json
+      ANALYSIS_TIMEZONE: ${ANALYSIS_TIMEZONE:-Asia/Seoul}
+      ANALYSIS_EXPECTED_SAMPLES_PER_DAY: ${ANALYSIS_EXPECTED_SAMPLES_PER_DAY:-86400}
+      ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      ACTIVITY_INDEX_PUBLISH_HOUR: ${ACTIVITY_INDEX_PUBLISH_HOUR:-0}
+      ACTIVITY_INDEX_PUBLISH_MINUTE: ${ACTIVITY_INDEX_PUBLISH_MINUTE:-10}
+      ACTIVITY_INDEX_SCHEDULER_POLL_SECONDS: ${ACTIVITY_INDEX_SCHEDULER_POLL_SECONDS:-30}
+      ROUTINE_BASELINE_WINDOW_DAYS: ${ROUTINE_BASELINE_WINDOW_DAYS:-28}
+      ROUTINE_BASELINE_MINIMUM_SAMPLE_DAYS: ${ROUTINE_BASELINE_MINIMUM_SAMPLE_DAYS:-14}
+      ROUTINE_BASELINE_MINIMUM_WEEKDAY_SAMPLE_DAYS: ${ROUTINE_BASELINE_MINIMUM_WEEKDAY_SAMPLE_DAYS:-4}
+      ROUTINE_BASELINE_MINIMUM_DAILY_USE_PROBABILITY: ${ROUTINE_BASELINE_MINIMUM_DAILY_USE_PROBABILITY:-0.70}
+      LOG_LEVEL: ${AGGREGATION_LOG_LEVEL:-INFO}
+      HDFS_URL: http://namenode:9870
+      BRONZE_BASE: ${BRONZE_BASE:-/nilm/bronze/power}
+      BRONZE_MANIFEST_BASE: ${BRONZE_MANIFEST_BASE:-/nilm/manifests/job=bronze-loader}
+      RETENTION_MANIFEST_BASE: ${RETENTION_MANIFEST_BASE:-/nilm/manifests/job=retention}
+      RETENTION_ENABLED: ${RETENTION_ENABLED:-true}
+      RETENTION_APPLY: ${RETENTION_APPLY:-false}
+      RETENTION_REQUIRE_COMPACTION: ${RETENTION_REQUIRE_COMPACTION:-true}
+      BRONZE_RETENTION_DAYS: ${BRONZE_RETENTION_DAYS:-14}
+      BRONZE_GRACE_DAYS: ${BRONZE_GRACE_DAYS:-3}
+      RETENTION_MAX_DELETE_BYTES: ${RETENTION_MAX_DELETE_BYTES:-5368709120}
+      RETENTION_MAX_DELETE_DATES: ${RETENTION_MAX_DELETE_DATES:-1}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      realtime-analysis-service:
+        condition: service_healthy
+      datanode:
+        condition: service_started
+      hdfs-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=5).close()"
+      interval: 10s
+      timeout: 10s
+      start_period: 30s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mqtt-kafka-bridge:
-    image: ${REGISTRY:?REGISTRY required}/nilm-mqtt-kafka-bridge:${IMAGE_TAG:?IMAGE_TAG required}
+    image: ${MQTT_KAFKA_BRIDGE_IMAGE:?MQTT_KAFKA_BRIDGE_IMAGE required}
     restart: unless-stopped
     init: true
     stop_grace_period: 30s
@@ -99,8 +297,339 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    restart: unless-stopped
+    environment:
+      CLUSTER_NAME: nilm
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: 1
+      HDFS_CONF_dfs_permissions_enabled: "false"
+    ports:
+      - "${EC2_B_PRIVATE_IP:?EC2_B_PRIVATE_IP required}:9870:9870"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    restart: unless-stopped
+    environment:
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: 1
+      HDFS_CONF_dfs_permissions_enabled: "false"
+      SERVICE_PRECONDITION: "namenode:9870"
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    depends_on:
+      - namenode
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  hdfs-init:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    restart: "no"
+    environment:
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      SERVICE_PRECONDITION: "namenode:9870 datanode:9864"
+      HDFS_QUOTA_ENABLED: ${HDFS_QUOTA_ENABLED:-true}
+      HDFS_TOTAL_QUOTA: ${HDFS_TOTAL_QUOTA:-80g}
+      HDFS_BRONZE_QUOTA: ${HDFS_BRONZE_QUOTA:-32g}
+      HDFS_QUARANTINE_QUOTA: ${HDFS_QUARANTINE_QUOTA:-8g}
+      HDFS_SESSION_BRONZE_QUOTA: ${HDFS_SESSION_BRONZE_QUOTA:-4g}
+      HDFS_MANIFEST_QUOTA: ${HDFS_MANIFEST_QUOTA:-2g}
+      HDFS_SILVER_QUOTA: ${HDFS_SILVER_QUOTA:-24g}
+      HDFS_GOLD_QUOTA: ${HDFS_GOLD_QUOTA:-2g}
+    command: ["/bin/bash", "/opt/nilm/hdfs-init.sh"]
+    volumes:
+      - ${CONFIG_ROOT:-.}/hdfs-init.sh:/opt/nilm/hdfs-init.sh:ro
+    depends_on:
+      - namenode
+      - datanode
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run)($$|/)
+    ports:
+      - "${EC2_B_PRIVATE_IP:?EC2_B_PRIVATE_IP required}:9100:9100"
+    volumes:
+      - /:/host:ro,rslave
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  bronze-loader:
+    image: ${BRONZE_LOADER_IMAGE:?BRONZE_LOADER_IMAGE required}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 60s
+    environment:
+      KAFKA_BOOTSTRAP: kafka:19092
+      KAFKA_TOPIC: ${KAFKA_RAW_TOPIC:-power.raw.v1}
+      GROUP_ID: ${BRONZE_KAFKA_GROUP_ID:-hdfs-bronze-loader}
+      HDFS_URL: http://namenode:9870
+      BRONZE_BASE: ${BRONZE_BASE:-/nilm/bronze/power}
+      QUARANTINE_BASE: ${BRONZE_QUARANTINE_BASE:-/nilm/quarantine/power}
+      MANIFEST_BASE: ${BRONZE_MANIFEST_BASE:-/nilm/manifests/job=bronze-loader}
+      FLUSH_SECS: ${BRONZE_FLUSH_SECS:-300}
+      MAX_BUFFER: ${BRONZE_MAX_BUFFER:-50000}
+      BUSINESS_TIMEZONE: ${ANALYSIS_TIMEZONE:-Asia/Seoul}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      datanode:
+        condition: service_started
+      hdfs-init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # appliance_usage_session outbox -> HDFS Bronze 적재기(단일 인스턴스).
+  # 초기 전체 적재는 배포 후 한 번: docker compose run --rm --no-deps session-lake-loader session-lake-loader initial-load
+  session-lake-loader:
+    image: ${SESSION_LAKE_LOADER_IMAGE:?SESSION_LAKE_LOADER_IMAGE required}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 2m
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      HDFS_URL: http://namenode:9870
+      HDFS_USER: root
+      SESSION_BRONZE_BASE: ${SESSION_BRONZE_BASE:-/nilm/bronze/appliance-session}
+      SESSION_MANIFEST_BASE: ${SESSION_MANIFEST_BASE:-/nilm/manifests/job=session-lake-loader}
+      RECEIPT_BRONZE_BASE: ${RECEIPT_BRONZE_BASE:-/nilm/bronze/analysis-processing-receipt}
+      RECEIPT_MANIFEST_BASE: ${RECEIPT_MANIFEST_BASE:-/nilm/manifests/job=analysis-receipt-lake-loader}
+      LOADER_POLL_SECONDS: ${SESSION_LAKE_POLL_SECONDS:-60}
+      LOADER_BATCH_MAX_EVENTS: ${SESSION_LAKE_BATCH_MAX_EVENTS:-5000}
+      LOADER_MAX_BATCHES_PER_CYCLE: ${SESSION_LAKE_MAX_BATCHES_PER_CYCLE:-20}
+      LOADER_ROWS_PER_FILE: ${SESSION_LAKE_ROWS_PER_FILE:-200000}
+      LOADER_RETRY_BACKOFF_SECONDS: ${SESSION_LAKE_RETRY_BACKOFF_SECONDS:-30}
+      LOADER_RETRY_MAX_BACKOFF_SECONDS: ${SESSION_LAKE_RETRY_MAX_BACKOFF_SECONDS:-900}
+      LOADER_MAX_ATTEMPTS: ${SESSION_LAKE_MAX_ATTEMPTS:-0}
+      LOG_LEVEL: ${SESSION_LAKE_LOG_LEVEL:-INFO}
+    ports:
+      - "${EC2_B_PRIVATE_IP:?EC2_B_PRIVATE_IP required}:8002:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      realtime-analysis-service:
+        condition: service_healthy
+      datanode:
+        condition: service_started
+      hdfs-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=5).close()"
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 6
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Bronze 전력 원본 -> Silver 정제 전력·가구 관측일 (Spark 일일 배치).
+  # 상시 서비스가 아니다. 배포는 이미지만 내려받고, 실행은 하루 한 번:
+  #   docker compose run --rm power-silver power-silver run
+  power-silver:
+    image: ${POWER_SILVER_IMAGE:?POWER_SILVER_IMAGE required}
+    profiles:
+      - batch
+    restart: "no"
+    init: true
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      HDFS_URL: http://namenode:9870
+      HDFS_USER: root
+      LAKE_FS_URI: ${POWER_SILVER_LAKE_FS_URI:-hdfs://namenode:9000}
+      BRONZE_BASE: ${BRONZE_BASE:-/nilm/bronze/power}
+      BRONZE_MANIFEST_BASE: ${BRONZE_MANIFEST_BASE:-/nilm/manifests/job=bronze-loader}
+      SILVER_BASE: ${SILVER_BASE:-/nilm/silver}
+      QUARANTINE_BASE: ${POWER_SILVER_QUARANTINE_BASE:-/nilm/quarantine/power_silver}
+      MANIFEST_BASE: ${POWER_SILVER_MANIFEST_BASE:-/nilm/manifests/job=power-silver-daily}
+      SESSION_MANIFEST_BASE: ${SESSION_MANIFEST_BASE:-/nilm/manifests/job=session-lake-loader}
+      RECEIPT_MANIFEST_BASE: ${RECEIPT_MANIFEST_BASE:-/nilm/manifests/job=analysis-receipt-lake-loader}
+      ANALYSIS_MANIFEST_BASE: ${ANALYSIS_MANIFEST_BASE:-/nilm/manifests/job=analysis-usage-daily}
+      GOLD_BASE: ${GOLD_BASE:-/nilm/gold}
+      ANALYSIS_RUN_ID: ${ANALYSIS_RUN_ID:-realtime-v1}
+      BUSINESS_UTC_OFFSET_SECONDS: ${BUSINESS_UTC_OFFSET_SECONDS:-32400}
+      RULE_VERSION: ${POWER_SILVER_RULE_VERSION:-power-silver-v1}
+      VALID_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      FUTURE_SKEW_SECONDS: ${POWER_SILVER_FUTURE_SKEW_SECONDS:-300}
+      INPUT_READY_GRACE_SECONDS: ${POWER_SILVER_INPUT_READY_GRACE_SECONDS:-1800}
+      INPUT_WAIT_DEADLINE_SECONDS: ${POWER_SILVER_INPUT_WAIT_DEADLINE_SECONDS:-21600}
+      MANIFEST_SCAN_BACK_DAYS: ${POWER_SILVER_MANIFEST_SCAN_BACK_DAYS:-1}
+      ANALYSIS_RULE_VERSION: ${ANALYSIS_DAILY_RULE_VERSION:-analysis-coverage-v1}
+      QUALITY_POLICY_VERSION: ${ANALYSIS_QUALITY_POLICY_VERSION:-baseline-quality-v1}
+      ANALYSIS_MINIMUM_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      ANALYSIS_MAXIMUM_GAP_SECONDS: ${ANALYSIS_MAXIMUM_GAP_SECONDS:-120}
+      SPARK_MASTER: ${POWER_SILVER_SPARK_MASTER:-}
+      SPARK_SHUFFLE_PARTITIONS: ${POWER_SILVER_SPARK_SHUFFLE_PARTITIONS:-0}
+      LOG_LEVEL: ${POWER_SILVER_LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      realtime-analysis-service:
+        condition: service_healthy
+      datanode:
+        condition: service_started
+      hdfs-init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Versioned Gold baseline/statistical profiles; delivery defaults to SHADOW.
+  # One business day end to end (silver -> usage -> gold -> publish):
+  #   docker compose run --rm gold-profile gold-profile daily
+  gold-profile:
+    image: ${GOLD_PROFILE_IMAGE:?GOLD_PROFILE_IMAGE required}
+    volumes:
+      - type: bind
+        source: ${EXPERIMENTS_HOST_DIR:-/opt/nilm/experiments}
+        target: /app/experiments
+    profiles:
+      - batch
+    restart: "no"
+    init: true
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      REPORT_DATABASE_URL: ${REPORT_DATABASE_URL:-}
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      HDFS_URL: http://namenode:9870
+      HDFS_USER: root
+      LAKE_FS_URI: ${POWER_SILVER_LAKE_FS_URI:-hdfs://namenode:9000}
+      BRONZE_BASE: ${BRONZE_BASE:-/nilm/bronze/power}
+      BRONZE_MANIFEST_BASE: ${BRONZE_MANIFEST_BASE:-/nilm/manifests/job=bronze-loader}
+      SILVER_BASE: ${SILVER_BASE:-/nilm/silver}
+      QUARANTINE_BASE: ${POWER_SILVER_QUARANTINE_BASE:-/nilm/quarantine/power_silver}
+      MANIFEST_BASE: ${POWER_SILVER_MANIFEST_BASE:-/nilm/manifests/job=power-silver-daily}
+      SESSION_MANIFEST_BASE: ${SESSION_MANIFEST_BASE:-/nilm/manifests/job=session-lake-loader}
+      RECEIPT_MANIFEST_BASE: ${RECEIPT_MANIFEST_BASE:-/nilm/manifests/job=analysis-receipt-lake-loader}
+      ANALYSIS_MANIFEST_BASE: ${ANALYSIS_MANIFEST_BASE:-/nilm/manifests/job=analysis-usage-daily}
+      GOLD_BASE: ${GOLD_BASE:-/nilm/gold}
+      ANALYSIS_RUN_ID: ${ANALYSIS_RUN_ID:-realtime-v1}
+      RULE_VERSION: ${POWER_SILVER_RULE_VERSION:-power-silver-v1}
+      VALID_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      FUTURE_SKEW_SECONDS: ${POWER_SILVER_FUTURE_SKEW_SECONDS:-300}
+      INPUT_READY_GRACE_SECONDS: ${POWER_SILVER_INPUT_READY_GRACE_SECONDS:-1800}
+      INPUT_WAIT_DEADLINE_SECONDS: ${POWER_SILVER_INPUT_WAIT_DEADLINE_SECONDS:-21600}
+      MANIFEST_SCAN_BACK_DAYS: ${POWER_SILVER_MANIFEST_SCAN_BACK_DAYS:-1}
+      ANALYSIS_RULE_VERSION: ${ANALYSIS_DAILY_RULE_VERSION:-analysis-coverage-v1}
+      QUALITY_POLICY_VERSION: ${ANALYSIS_QUALITY_POLICY_VERSION:-baseline-quality-v1}
+      ANALYSIS_MINIMUM_COVERAGE_RATIO: ${ANALYSIS_OBSERVATION_VALID_COVERAGE_RATIO:-0.95}
+      ANALYSIS_MAXIMUM_GAP_SECONDS: ${ANALYSIS_DAILY_MAXIMUM_GAP_SECONDS:-120}
+      PROFILE_MANIFEST_BASE: ${GOLD_PROFILE_MANIFEST_BASE:-/nilm/manifests/job=gold-profile}
+      PROFILE_STAGING_BASE: ${GOLD_PROFILE_STAGING_BASE:-/nilm/gold/.staging/job=gold-profile}
+      PROFILE_WINDOW_DAYS: ${GOLD_PROFILE_WINDOW_DAYS:-28}
+      PROFILE_MINIMUM_SAMPLE_DAYS: ${GOLD_PROFILE_MINIMUM_SAMPLE_DAYS:-14}
+      PROFILE_MINIMUM_WEEKDAY_SAMPLE_DAYS: ${GOLD_PROFILE_MINIMUM_WEEKDAY_SAMPLE_DAYS:-4}
+      PROFILE_MINIMUM_DAILY_USE_PROBABILITY: ${GOLD_PROFILE_MINIMUM_DAILY_USE_PROBABILITY:-0.70}
+      PROFILE_TIME_BUCKET_MINUTES: ${GOLD_PROFILE_TIME_BUCKET_MINUTES:-30}
+      PROFILE_RULE_VERSION: ${GOLD_PROFILE_RULE_VERSION:-gold-profile-v1}
+      PROFILE_STATISTIC_RULE_VERSION: ${GOLD_PROFILE_STATISTIC_RULE_VERSION:-household-statistics-v1-nearest-rank}
+      # 프로필 전달. SHADOW는 아웃박스에만 적고 모니터링 운영 프로필로 반영하지 않는다.
+      # 종단 검증이 끝난 뒤 ACTIVE로 올린다.
+      PROFILE_DELIVERY_MODE: ${GOLD_PROFILE_DELIVERY_MODE:-SHADOW}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      PROFILE_KAFKA_TOPIC: ${KAFKA_HOUSEHOLD_PROFILE_TOPIC:-gold.household-profile.v1}
+      PROFILE_PUBLISHER_BATCH_SIZE: ${GOLD_PROFILE_PUBLISHER_BATCH_SIZE:-100}
+      PROFILE_PUBLISHER_RETRY_SECONDS: ${GOLD_PROFILE_PUBLISHER_RETRY_SECONDS:-30}
+      BUSINESS_UTC_OFFSET_SECONDS: ${BUSINESS_UTC_OFFSET_SECONDS:-32400}
+      SPARK_MASTER: ${POWER_SILVER_SPARK_MASTER:-}
+      SPARK_SHUFFLE_PARTITIONS: ${POWER_SILVER_SPARK_SHUFFLE_PARTITIONS:-0}
+      LOG_LEVEL: ${GOLD_PROFILE_LOG_LEVEL:-INFO}
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      realtime-analysis-service:
+        condition: service_healthy
+      datanode:
+        condition: service_started
+      hdfs-init:
+        condition: service_completed_successfully
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Drains the profile delivery outbox. The batch only writes rows; without a
+  # process calling it, a row that failed to send keeps its next_attempt_at and
+  # is never retried. Long-lived on purpose, so it is not in the batch profile.
+  gold-profile-publisher:
+    image: ${GOLD_PROFILE_IMAGE:?GOLD_PROFILE_IMAGE required}
+    restart: unless-stopped
+    init: true
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: analysis_db
+      DATABASE_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      PROFILE_KAFKA_TOPIC: ${KAFKA_HOUSEHOLD_PROFILE_TOPIC:-gold.household-profile.v1}
+      PROFILE_PUBLISHER_BATCH_SIZE: ${GOLD_PROFILE_PUBLISHER_BATCH_SIZE:-100}
+      PROFILE_PUBLISHER_RETRY_SECONDS: ${GOLD_PROFILE_PUBLISHER_RETRY_SECONDS:-30}
+      LOG_LEVEL: ${GOLD_PROFILE_LOG_LEVEL:-INFO}
+    command: ["gold-profile", "publish", "--loop"]
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      realtime-analysis-service:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   postgres_data:
     name: nilm-b_postgres_data
   kafka_data:
     name: nilm-b_kafka_data
+  namenode_data:
+    name: nilm-b_namenode_data
+  datanode_data:
+    name: nilm-b_datanode_data

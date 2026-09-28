@@ -1,0 +1,2 @@
+ALTER TABLE managers
+    ADD COLUMN phone VARCHAR(20);

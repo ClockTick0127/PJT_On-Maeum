@@ -1,0 +1,20 @@
+[
+  {
+    "targets": [
+      "http://realtime-analysis-service:8000/health"
+    ],
+    "labels": {
+      "service": "ai-health",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "http://realtime-analysis-service:8000/ready"
+    ],
+    "labels": {
+      "service": "ai-ready",
+      "environment": "ec2-b"
+    }
+  }
+]

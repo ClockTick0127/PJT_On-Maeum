@@ -1,0 +1,14 @@
+# Bring up the whole local stack except monitoring-service.
+#   docker compose -f compose.yaml -f compose.without-monitoring.yaml up -d --build
+# monitoring-service moves behind a profile so it is skipped by both up and build,
+# and api-gateway (its only dependent) drops it from depends_on.
+services:
+  monitoring-service:
+    profiles: ["monitoring"]
+
+  api-gateway:
+    depends_on: !override
+      keycloak:
+        condition: service_healthy
+      iot-device-service:
+        condition: service_healthy

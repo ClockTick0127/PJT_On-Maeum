@@ -1,0 +1,76 @@
+{
+  "scenario_version": 1,
+  "description": "3 demo households, 91 days: normal (06-25~08-19), change (08-20~09-02), anomalies (09-03~09-23). Household ids H008~H010 are registered in the local monitoring DB but unused by the simulator demo.",
+  "range": {"start": "2026-06-25", "end": "2026-09-23"},
+  "utc_offset_seconds": 32400,
+  "analysis_run_id": "realtime-v1",
+  "topic": "power.raw.v1",
+  "households": [
+    {
+      "household_id": "H008",
+      "seed": 8001,
+      "sampling_interval_seconds": 1,
+      "schedule": [
+        {"label": "morning kettle", "appliance": "kettle", "median": "08:50", "jitter_minutes": 15, "probability": 0.97, "duration_seconds": [150, 210]},
+        {"label": "noon kettle", "appliance": "kettle", "median": "12:00", "jitter_minutes": 30, "probability": 0.6, "duration_seconds": [120, 180]},
+        {"label": "evening kettle", "appliance": "kettle", "median": "20:00", "jitter_minutes": 30, "probability": 0.6, "duration_seconds": [120, 180]},
+        {"label": "hair dryer", "appliance": "hair_dryer", "median": "20:10", "jitter_minutes": 30, "probability": 0.9, "duration_seconds": [240, 360]},
+        {"label": "weekday vacuum", "appliance": "vacuum_cleaner", "median": "12:20", "jitter_minutes": 60, "probability": 0.8, "duration_seconds": [300, 420], "weekdays": ["MON", "TUE", "WED", "THU", "FRI"]},
+        {"label": "weekend vacuum", "appliance": "vacuum_cleaner", "median": "10:30", "jitter_minutes": 60, "probability": 0.8, "duration_seconds": [300, 420], "weekdays": ["SAT", "SUN"]}
+      ],
+      "periods": [
+        {"name": "change", "start": "2026-08-20", "end": "2026-09-02", "shift_minutes": {"kettle": 150}},
+        {"name": "missing", "start": "2026-09-04", "end": "2026-09-04", "missing_windows": [["09:00", "15:00"]]},
+        {"name": "reduced", "start": "2026-09-06", "end": "2026-09-12", "keep_first_use_only": true},
+        {"name": "inactive", "start": "2026-09-13", "end": "2026-09-16", "probability_override": {"*": 0.0}}
+      ]
+    },
+    {
+      "household_id": "H009",
+      "seed": 9001,
+      "sampling_interval_seconds": 1,
+      "schedule": [
+        {"label": "dinner induction", "appliance": "induction", "median": "19:00", "jitter_minutes": 20, "probability": 0.9, "duration_seconds": [600, 840], "segments": [3, 5], "segment_gap_seconds": [20, 60]},
+        {"label": "lunch induction", "appliance": "induction", "median": "12:10", "jitter_minutes": 30, "probability": 0.5, "duration_seconds": [420, 540], "segments": [2, 3], "segment_gap_seconds": [20, 60]},
+        {"label": "ironing", "appliance": "iron", "median": "12:30", "jitter_minutes": 120, "probability": 0.8, "duration_seconds": [300, 420], "weekdays": ["MON", "WED", "FRI"]}
+      ],
+      "periods": [
+        {"name": "change", "start": "2026-08-27", "end": "2026-09-02", "shift_minutes": {"induction": 90}},
+        {"name": "missing", "start": "2026-09-04", "end": "2026-09-04", "missing_windows": [["09:00", "15:00"]]},
+        {"name": "long-use", "start": "2026-09-10", "end": "2026-09-10", "extend_first_use_seconds": {"induction": 10800}},
+        {"name": "inactive", "start": "2026-09-13", "end": "2026-09-16", "probability_override": {"*": 0.0}}
+      ],
+      "away": [
+        {"start": "2026-09-08T09:00:00+09:00", "end": "2026-09-08T18:00:00+09:00"}
+      ]
+    },
+    {
+      "household_id": "H010",
+      "seed": 10001,
+      "sampling_interval_seconds": 1,
+      "schedule": [
+        {"label": "dinner microwave", "appliance": "microwave", "median": "17:50", "jitter_minutes": 60, "probability": 0.94, "duration_seconds": [240, 360]},
+        {"label": "late microwave", "appliance": "microwave", "median": "21:00", "jitter_minutes": 60, "probability": 0.5, "duration_seconds": [120, 240]}
+      ],
+      "periods": [
+        {"name": "change", "start": "2026-08-20", "end": "2026-09-02", "shift_minutes": {"microwave": 150}},
+        {"name": "missing", "start": "2026-09-04", "end": "2026-09-04", "missing_windows": [["09:00", "15:00"]]},
+        {"name": "reduced", "start": "2026-09-06", "end": "2026-09-12", "keep_first_use_only": true},
+        {"name": "inactive", "start": "2026-09-13", "end": "2026-09-16", "probability_override": {"*": 0.0}}
+      ]
+    }
+  ],
+  "load_households": {
+    "count": 0,
+    "prefix": "L",
+    "sampling_interval_seconds": 10,
+    "templates": ["H008", "H009", "H010"],
+    "weights": [3, 2, 5],
+    "seed": 99,
+    "median_jitter_minutes": 60,
+    "probability_jitter": 0.1,
+    "inactive_fraction": 0.05,
+    "inactive_days": 4,
+    "waveform_pool_size": 50
+  }
+}

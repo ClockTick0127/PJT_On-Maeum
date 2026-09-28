@@ -9,5 +9,27 @@
     "window_days": 14,
     "reliability_weight": 1.0,
     "enabled": true
+  },
+  {
+    "id": "6f70ef1a-e367-43ea-b553-03d55b291471",
+    "household_id": "H002",
+    "appliance_type": "MICROWAVE",
+    "baseline_type": "ROUTINE_MISSED",
+    "expected_until": "08:10",
+    "normal_days": 12,
+    "window_days": 14,
+    "reliability_weight": 1.0,
+    "enabled": true
+  },
+  {
+    "id": "b36b184a-e029-46bf-8cc3-564e4ee5ad3d",
+    "household_id": "H003",
+    "appliance_type": "MICROWAVE",
+    "baseline_type": "ROUTINE_MISSED",
+    "expected_until": "08:10",
+    "normal_days": 12,
+    "window_days": 14,
+    "reliability_weight": 1.0,
+    "enabled": true
   }
 ]

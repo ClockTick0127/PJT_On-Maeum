@@ -1,0 +1,135 @@
+[
+  {
+    "file": "measurement-valid.json",
+    "kind": "measurement",
+    "valid": true,
+    "rule": "four raw features, aware timestamp",
+    "origin": "derived_from_actual_kettle_trace"
+  },
+  {
+    "file": "snapshot-on.json",
+    "kind": "snapshot",
+    "valid": true,
+    "rule": "only selected target inferred",
+    "origin": "actual_kettle_broker_trace"
+  },
+  {
+    "file": "snapshot-warmup.json",
+    "kind": "snapshot",
+    "valid": true,
+    "rule": "all appliances UNKNOWN during warmup",
+    "origin": "actual_kettle_broker_trace"
+  },
+  {
+    "file": "session-open.json",
+    "kind": "session",
+    "valid": true,
+    "rule": "observed ON establishes known start",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "session-closed.json",
+    "kind": "session",
+    "valid": true,
+    "rule": "observed OFF closes session",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "session-sync-on.json",
+    "kind": "session",
+    "valid": true,
+    "rule": "SYNC ON has no known physical start",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "session-eof.json",
+    "kind": "session",
+    "valid": true,
+    "rule": "EOF is not physical OFF",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "risk-threshold.json",
+    "kind": "risk",
+    "valid": true,
+    "rule": "test-only continuous ON reaches threshold",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-missing-feature.json",
+    "kind": "measurement",
+    "valid": false,
+    "rule": "valid input requires all features",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-naive-time.json",
+    "kind": "measurement",
+    "valid": false,
+    "rule": "timestamp requires timezone",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-string-boolean.json",
+    "kind": "measurement",
+    "valid": false,
+    "rule": "boolean coercion forbidden",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-inactive-off.json",
+    "kind": "snapshot",
+    "valid": false,
+    "rule": "inactive must remain UNKNOWN",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-probability.json",
+    "kind": "snapshot",
+    "valid": false,
+    "rule": "probability outside [0,1]",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-runtime-profile.json",
+    "kind": "snapshot",
+    "valid": false,
+    "rule": "runtime identity mismatch",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-appliance-order.json",
+    "kind": "snapshot",
+    "valid": false,
+    "rule": "six fixed ordered entries",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-sync-start.json",
+    "kind": "session",
+    "valid": false,
+    "rule": "unknown start cannot contain started_at",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-eof-closed.json",
+    "kind": "session",
+    "valid": false,
+    "rule": "EOF cannot close as OFF",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-premature-risk.json",
+    "kind": "risk",
+    "valid": false,
+    "rule": "duration below threshold",
+    "origin": "synthetic_contract_example"
+  },
+  {
+    "file": "invalid-household-inactivity.json",
+    "kind": "risk",
+    "valid": false,
+    "rule": "single target cannot establish household inactivity",
+    "origin": "synthetic_contract_example"
+  }
+]

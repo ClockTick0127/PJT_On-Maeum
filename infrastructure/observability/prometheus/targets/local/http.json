@@ -1,0 +1,56 @@
+[
+  {
+    "targets": [
+      "http://realtime-analysis-service:8000/health"
+    ],
+    "labels": {
+      "service": "ai-health",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "http://realtime-analysis-service:8000/ready"
+    ],
+    "labels": {
+      "service": "ai-ready",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "http://api-gateway:8080/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "api-gateway",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "http://iot-device-service:8081/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "iot-device-service",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "http://monitoring-service:8082/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "monitoring-service",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "http://keycloak:9000/health/ready"
+    ],
+    "labels": {
+      "service": "keycloak",
+      "environment": "local"
+    }
+  }
+]

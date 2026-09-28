@@ -9,6 +9,9 @@
       },
       {
         "name": "ADMIN"
+      },
+      {
+        "name": "STAFF"
       }
     ]
   },
@@ -37,6 +40,28 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "nilm-backend",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${NILM_BACKEND_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-nilm-backend",
+      "enabled": true,
+      "serviceAccountClientId": "nilm-backend",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users"
+        ]
+      }
     }
   ]
 }

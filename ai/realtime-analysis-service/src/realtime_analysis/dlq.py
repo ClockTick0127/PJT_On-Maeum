@@ -1,6 +1,7 @@
 """Dead-letter queue message publishing."""
 
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -9,6 +10,7 @@ from confluent_kafka import Message, Producer
 from realtime_analysis.config import Settings
 from realtime_analysis.schemas import DlqMessage
 
+logger = logging.getLogger(__name__)
 
 class DlqPublisher:
     def __init__(
@@ -55,3 +57,8 @@ class DlqPublisher:
             raise RuntimeError(f"{remaining} DLQ events were not delivered")
         if delivery_errors:
             raise RuntimeError(f"DLQ event delivery failed: {delivery_errors[0]}")
+        logger.info(
+            "오류 메시지 발행 완료: 토픽=%s 원본토픽=%s 파티션=%s 오프셋=%s 오류=%s",
+            self._topic, event.source_topic, event.source_partition,
+            event.source_offset, error_code,
+        )

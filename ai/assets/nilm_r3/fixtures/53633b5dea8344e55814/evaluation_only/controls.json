@@ -1,0 +1,125 @@
+{
+  "cold_2": {
+    "metrics": {
+      "counts": {
+        "tp": 266,
+        "fp": 1,
+        "fn": 5,
+        "tn": 299,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.9962546816479401,
+      "recall_including_unknown": 0.981549815498155,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.981549815498155,
+      "rank_score": 0.9888475836431226,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      1198439,
+      1199010
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 571
+    }
+  },
+  "long_prefix": {
+    "metrics": {
+      "counts": {
+        "tp": 266,
+        "fp": 1,
+        "fn": 5,
+        "tn": 899,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.9962546816479401,
+      "recall_including_unknown": 0.981549815498155,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.981549815498155,
+      "rank_score": 0.9888475836431226,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      1198139,
+      1199310
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 571
+    }
+  },
+  "off_control": {
+    "metrics": {
+      "counts": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "tn": 600,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": null,
+      "recall_including_unknown": null,
+      "unknown_fraction": 0.0,
+      "conditional_recall": null,
+      "rank_score": null,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": false
+    },
+    "evaluation_interval": [
+      117974,
+      118574
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "other_day": {
+    "metrics": {
+      "counts": {
+        "tp": 85,
+        "fp": 230,
+        "fn": 5,
+        "tn": 70,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.2698412698412698,
+      "recall_including_unknown": 0.9444444444444444,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.9444444444444444,
+      "rank_score": 0.41975308641975306,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": false
+    },
+    "evaluation_interval": [
+      2792,
+      3182
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "candidate_id": "53633b5dea8344e55814",
+  "appliance": "microwave",
+  "house": "H063",
+  "cold_runs_complete": 2,
+  "long_prefix_complete": true,
+  "truth_absent_cold2_scores_identical": true,
+  "recommendation": "external_review_pending"
+}

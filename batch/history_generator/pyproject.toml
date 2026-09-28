@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "history-generator"
+version = "0.1.0"
+description = "Writes months of rule-based Bronze power, analysis receipts and appliance sessions into the lake for aggregation, reporting and load tests"
+requires-python = ">=3.11"
+dependencies = [
+    "pyarrow>=17,<26",
+    "numpy>=1.26,<3",
+    "hdfs>=2.7,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+# outbox -> profiles.json needs a database driver; the gold-profile image already has these.
+profiles = ["sqlalchemy>=2.0,<3", "psycopg[binary]>=3.1,<4"]
+
+[project.scripts]
+history-generator = "history_generator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "../power_silver_service/src", "../../collection/session-lake-loader/src"]
+testpaths = ["tests"]
+markers = [
+    "simulator: needs infrastructure/mqtt/simulator importable (engine physics waveform)",
+]

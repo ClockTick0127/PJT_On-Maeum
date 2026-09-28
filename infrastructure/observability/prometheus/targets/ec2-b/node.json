@@ -1,0 +1,9 @@
+[
+  {
+    "targets": ["ec2-b.internal:9100"],
+    "labels": {
+      "service": "ec2-b-node",
+      "environment": "ec2-b"
+    }
+  }
+]

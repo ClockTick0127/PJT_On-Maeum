@@ -1,0 +1,1 @@
+"""Daily aggregation service."""

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "session-lake-loader"
+version = "0.1.0"
+description = "appliance_usage_session outbox -> HDFS Bronze Parquet loader and verifier"
+requires-python = ">=3.11"
+dependencies = [
+    "realtime-analysis-service==0.1.0",
+    "pyarrow>=17",
+    "hdfs>=2.7,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-cov>=6,<7",
+]
+
+[project.scripts]
+session-lake-loader = "session_lake_loader.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "postgres: requires TEST_DATABASE_URL pointing at a disposable PostgreSQL database",
+]
+
+[tool.coverage.run]
+relative_files = true

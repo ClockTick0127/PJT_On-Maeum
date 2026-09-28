@@ -2,7 +2,11 @@
 
 from datetime import date
 
-from realtime_analysis.schemas import ApplianceState
+from realtime_analysis.schemas import (
+    ApplianceState,
+    ApplianceStateTransition,
+    ApplianceTransitionType,
+)
 
 # AI가 가전을 ON으로 판단하면 오늘 사용한 가전으로 기록 
 class DailyActivityTracker:
@@ -20,6 +24,21 @@ class DailyActivityTracker:
             if state.is_on:
                 self._used.add(
                     (household_id, activity_date, state.appliance_type)
+                )
+
+    def record_transitions(
+        self,
+        activity_date: date,
+        transitions: list[ApplianceStateTransition],
+    ) -> None:
+        for transition in transitions:
+            if transition.transition_type == ApplianceTransitionType.TURNED_ON:
+                self._used.add(
+                    (
+                        transition.household_id,
+                        activity_date,
+                        transition.appliance_type,
+                    )
                 )
 
     def was_used(

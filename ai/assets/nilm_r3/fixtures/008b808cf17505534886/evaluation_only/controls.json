@@ -1,0 +1,125 @@
+{
+  "cold_2": {
+    "metrics": {
+      "counts": {
+        "tp": 38,
+        "fp": 0,
+        "fn": 0,
+        "tn": 300,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 1.0,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 1.0,
+      "rank_score": 1.0,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      2490671,
+      2491009
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 338
+    }
+  },
+  "long_prefix": {
+    "metrics": {
+      "counts": {
+        "tp": 38,
+        "fp": 0,
+        "fn": 0,
+        "tn": 900,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 1.0,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 1.0,
+      "rank_score": 1.0,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      2490371,
+      2491309
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 338
+    }
+  },
+  "off_control": {
+    "metrics": {
+      "counts": {
+        "tp": 0,
+        "fp": 43,
+        "fn": 0,
+        "tn": 557,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.0,
+      "recall_including_unknown": null,
+      "unknown_fraction": 0.0,
+      "conditional_recall": null,
+      "rank_score": 0.0,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": false
+    },
+    "evaluation_interval": [
+      28394,
+      28994
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "other_day": {
+    "metrics": {
+      "counts": {
+        "tp": 55,
+        "fp": 0,
+        "fn": 76,
+        "tn": 300,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 0.4198473282442748,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.4198473282442748,
+      "rank_score": 0.5913978494623656,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      72322,
+      72753
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "candidate_id": "008b808cf17505534886",
+  "appliance": "kettle",
+  "house": "H046",
+  "cold_runs_complete": 2,
+  "long_prefix_complete": true,
+  "truth_absent_cold2_scores_identical": true,
+  "recommendation": "external_review_pending"
+}

@@ -1,0 +1,169 @@
+### 가입·로그인·초대 API 예제
+# VS Code 확장 "REST Client"(humao.rest-client)에서 각 요청 위의 Send Request를 누른다.
+# 사전 조건: postgres·keycloak 기동 + 서비스 실행(기본 8083, 로컬은 APP_SECURITY_ENABLED=false)
+
+@host = http://localhost:8083
+@email = son{{$timestamp}}@nilm.test
+@password = pass12345
+
+### 0. 이메일 중복 확인 — 가입 폼이 제출 전에 부른다 (대소문자는 정규화된다)
+GET {{host}}/api/auth/check-email?email={{email}}
+
+### 1. 회원가입 (보호자 — organization 없음 → 즉시 ACTIVE)
+# @name signup
+POST {{host}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "displayName": "이아들",
+  "phone": "010-3333-4444"
+}
+
+### 1-1. 회원가입 (복지사 — organization 있음 → 담당자 아웃박스에 기록되어 monitoring으로 발행)
+POST {{host}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "staff{{$timestamp}}@nilm.test",
+  "password": "{{password}}",
+  "displayName": "김복지",
+  "phone": "010-1111-2222",
+  "organization": "행복구 복지센터"
+}
+
+### 2. 로그인 (Keycloak 토큰 발급 대행)
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{signup.response.body.email}}",
+  "password": "{{password}}"
+}
+
+### 3. 내 정보 — 프로필 + 접근 가능한 가구 목록
+GET {{host}}/api/auth/me
+Authorization: Bearer {{login.response.body.accessToken}}
+X-User-Id: {{signup.response.body.userId}}
+
+### 4. 토큰 갱신
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.refreshToken}}"
+}
+
+### 5. 가구 등록 — 등록자가 첫 멤버(PRIMARY)로 자동 연결된다
+# @name household
+POST {{host}}/api/devices/households
+Content-Type: application/json
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "houseId": "H901",
+  "alias": "우리 집",
+  "graceMinutes": 120
+}
+
+### 6. 초대 코드 발급 (담당자용, 기본 72시간·1회용)
+# @name invite
+POST {{host}}/api/devices/households/{{household.response.body.houseId}}/invites
+Content-Type: application/json
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "relation": "STAFF",
+  "expiresInHours": 72
+}
+
+### 7. 초대 수락 — 다른 계정으로 실행해야 의미가 있다
+# X-User-Id를 다른 가입자의 userId로 바꿔서 실행
+POST {{host}}/api/devices/invites/{{invite.response.body.code}}/accept
+Content-Type: application/json
+X-User-Id: 00000000-0000-0000-0000-000000000000
+
+{
+  "notifyPhone": "010-5555-6666"
+}
+
+### 8. 가구 멤버 목록 (알림 발송 순서 — PRIMARY 우선)
+GET {{host}}/api/devices/households/{{household.response.body.houseId}}/members
+X-User-Id: {{signup.response.body.userId}}
+
+### 9. 멤버 알림 설정 변경
+PATCH {{host}}/api/devices/households/{{household.response.body.houseId}}/members/{{signup.response.body.userId}}
+Content-Type: application/json
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "notifyEnabled": false
+}
+
+### 10. 초대 코드 목록 (발급·사용·회수 이력)
+GET {{host}}/api/devices/households/{{household.response.body.houseId}}/invites
+X-User-Id: {{signup.response.body.userId}}
+
+### 11. 초대 코드 회수
+DELETE {{host}}/api/devices/invites/{{invite.response.body.code}}
+X-User-Id: {{signup.response.body.userId}}
+
+### 12. 내 정보 수정 — null 필드는 유지된다. 이름은 Keycloak에도 반영
+PATCH {{host}}/api/auth/me
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "displayName": "이아들(수정)",
+  "phone": "010-5555-6666"
+}
+
+### 13. 비밀번호 변경 — 성공하면 모든 세션이 끊긴다. 이후 요청은 재로그인 필요
+POST {{host}}/api/auth/password
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.accessToken}}
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "currentPassword": "{{password}}",
+  "newPassword": "newpass12345"
+}
+
+### 13-1. 현재 비밀번호가 틀리면 400 — 재설정이 일어나지 않아야 한다
+POST {{host}}/api/auth/password
+Content-Type: application/json
+X-User-Id: {{signup.response.body.userId}}
+
+{
+  "currentPassword": "wrong-password",
+  "newPassword": "another12345"
+}
+
+### 14. 바뀐 비밀번호로 재로그인
+# @name relogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{signup.response.body.email}}",
+  "password": "newpass12345"
+}
+
+### 15. 로그아웃 — refresh token 폐기 (204)
+POST {{host}}/api/auth/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{relogin.response.body.refreshToken}}"
+}
+
+### 15-1. 폐기된 토큰으로 갱신 시도 — 400이어야 로그아웃이 실제로 동작한 것이다
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{relogin.response.body.refreshToken}}"
+}

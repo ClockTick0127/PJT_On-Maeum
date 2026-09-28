@@ -1,0 +1,19 @@
+{
+  "event_id": "af01912a-6c6e-5f6a-96d7-587359274de1",
+  "household_id": "r3-contract-test",
+  "event_type": "PROLONGED_APPLIANCE_USE",
+  "occurred_at": "2026-09-21T12:00:10+09:00",
+  "reason": {
+    "scope": "selected_scene",
+    "run_id": "contract-test-run",
+    "profile_id": "r2-scene-kettle-008b808cf17505534886",
+    "appliance_type": "KETTLE",
+    "session_id": "52b8b9d7-8732-5400-846a-d78ee3a4049c",
+    "source_index": 2490801,
+    "policy_id": "contract-test-10s",
+    "policy_scope": "test_household",
+    "session_started_at": "2026-09-21T12:00:00+09:00",
+    "continuous_on_seconds": 10,
+    "threshold_seconds": 11
+  }
+}

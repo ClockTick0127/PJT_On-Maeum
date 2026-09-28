@@ -6,1215 +6,497 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NILM AI 실시간 전력 시뮬레이터 & 피크 시연 대시보드</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg-dark: #0b1120;
-      --card-bg: #1e293b;
-      --card-bg-sub: #162032;
-      --border: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-purple: #818cf8;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --success: #10b981;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Pretendard", sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-main);
-      padding: 24px;
-      line-height: 1.5;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 20px;
-    }
-
-    .title h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .title p {
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      margin-top: 4px;
-    }
-
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 18px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .btn-peak {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #ffffff;
-      border-color: rgba(239, 68, 68, 0.4);
-      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35);
-    }
-
-    .btn-peak:hover {
-      background: linear-gradient(135deg, #f87171, #ef4444);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
-    }
-
-    .btn-random {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #ffffff;
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
-    }
-
-    .btn-random:hover {
-      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #334155;
-      color: #f8fafc;
-      border-color: #475569;
-    }
-
-    .btn-secondary:hover {
-      background: #475569;
-    }
-
-    .speed-select {
-      background: #1e293b;
-      color: #f8fafc;
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .grid-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card .label {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .stat-card .value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-top: 6px;
-      color: #f8fafc;
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .stat-card .value small {
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    .stat-card .sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .stat-card.alert-card {
-      border-color: rgba(239, 68, 68, 0.4);
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(239, 68, 68, 0.1));
-    }
-
-    .stat-card.alert-card .value {
-      color: #f87171;
-    }
-
-    .badge-status {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .status-normal {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .status-peak {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      animation: pulse 1s infinite;
-    }
-
-    .status-running {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-
-      50% {
-        transform: scale(1.03);
-        opacity: 0.85;
-      }
-    }
-
-    .appliance-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-    }
-
-    .appliance-bar-title {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .appliance-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-    }
-
-    .app-chip {
-      background: var(--card-bg-sub);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.25s ease;
-    }
-
-    .app-chip .name {
-      font-size: 0.84rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .app-chip .state {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-    }
-
-    .app-chip.active {
-      border-color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-    }
-
-    .app-chip.active .name {
-      color: #f8fafc;
-    }
-
-    .app-chip.active .state {
-      color: #38bdf8;
-    }
-
-    .app-chip.active.peak-app {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.15);
-    }
-
-    .app-chip.active.peak-app .state {
-      color: #f87171;
-    }
-
-    .chart-container {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .chart-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .chart-desc {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .table-container {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-    }
-
-    th,
-    td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      color: var(--text-muted);
-      font-weight: 600;
-      background: rgba(15, 23, 42, 0.4);
-    }
-
-    tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .timeline-notice {
-      display: inline-block;
-      font-size: 0.85rem;
-      color: #38bdf8;
-      font-weight: 600;
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px dashed rgba(56, 189, 248, 0.3);
-      padding: 8px 14px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      width: 100%;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/waveform.css">
 </head>
 
 <body>
 
-  <!-- 1. 대시보드 헤더 및 실시간 제어 바 -->
-  <div class="header">
+  <!-- 대시보드 제목 및 서버 연결 상태 -->
+  <header class="header">
     <div class="title">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <h1>NILM 실시간 전력 시뮬레이터 & 피크 시연 대시보드</h1>
+        <h1>NILM 실시간 전력 시뮬레이터 & 다중 가구 대시보드</h1>
         <span id="serverIndicator" class="badge-status status-running">연결 확인 중...</span>
       </div>
-      <p>스마트홈 메인 분전반 교류 전력(P, Q, S, PF, V, I) 실시간 생성 및 시연 인터페이스</p>
+      <p>스마트홈 메인 분전반 교류 전력(P, Q, S, PF, V, I) 실시간 다중 가구 동시 생성 및 시연 인터페이스</p>
     </div>
-    <div class="controls">
-      <button id="btnPeakDemo" class="btn btn-peak" onclick="startPeakDemo()">
-        10초 피크 시연 시작 (3,000W+)
-      </button>
-      <button id="btnRandomDemo" class="btn btn-random" onclick="startRandomSimulation()">
-        연속 실시간 시뮬레이션
-      </button>
-      <button id="btnPause" class="btn btn-secondary" onclick="togglePause()" disabled>
-        일시정지
-      </button>
-      <button id="btnReset" class="btn btn-secondary" onclick="resetSimulation()">
-        초기화
-      </button>
-      <select id="speedSelect" class="speed-select" onchange="changeSpeed(this.value)">
-        <option value="1000">1x (실시간 1.0초)</option>
-        <option value="500">2x 배속 (0.5초)</option>
-        <option value="200">5x 배속 (0.2초)</option>
-      </select>
+    <div class="controls header-export">
+      <a class="btn btn-secondary" href="routine-demo">정상·이상 비교 시연</a>
       <button class="btn btn-secondary" onclick="downloadCsv()">CSV 내보내기</button>
     </div>
-  </div>
+  </header>
 
-  <!-- 시연 진행 안내 배너 -->
-  <div id="timelineNotice" class="timeline-notice">
-    [준비 완료] 상단의 <strong>[10초 피크 시연 시작 (3,000W+)]</strong> 버튼을 누르면 실시간 시연 시나리오가 시작됩니다.
-  </div>
+  <!-- MQTT 발행 확인까지의 흐름만 시각화한다. -->
+  <section id="powerflowPanel" class="flow-panel" data-mode="live" data-run-state="idle" data-visual-state="idle"
+    data-fault="0" data-confirmed="0" aria-label="계측 데이터 전송 흐름: 대기. MQTT 브로커 발행 확인까지 표시">
+    <div class="flow-title">계측 데이터 전송 흐름</div>
+    <div class="flow-stage" aria-hidden="true">
+      <div class="flow-node">
+        <div id="powerflowBoard" class="flow-device flow-board">
+          <svg viewBox="0 0 72 72" focusable="false">
+            <rect x="13" y="9" width="46" height="54" />
+            <path d="M22 22h28M22 48h28M22 55h18" />
+            <path class="flow-wave" d="M22 36h7l4-7 6 14 4-7h7" />
+          </svg>
+        </div>
+        <span class="flow-device-label">메인 분전반</span>
+      </div>
+      <div id="powerflowMqttLane" class="flow-lane flow-mqtt-lane">
+        <span class="flow-track"></span>
+        <span class="flow-lane-origin"></span>
+        <span class="flow-lane-arrow"></span>
+        <span class="flow-lane-break" aria-hidden="true">결측</span>
+        <span class="flow-lane-destination"></span>
+      </div>
+      <div class="flow-node">
+        <div id="powerflowBroker" class="flow-device flow-broker">
+          <svg viewBox="0 0 72 72" focusable="false">
+            <rect x="13" y="16" width="46" height="40" />
+            <circle cx="27" cy="36" r="4" />
+            <circle cx="45" cy="36" r="4" />
+            <path d="M31 36h10" />
+          </svg>
+        </div>
+        <span class="flow-device-label">MQTT 브로커</span>
+      </div>
+    </div>
+    <div class="flow-throughput">
+      <span><span class="flow-metric-label">누적 발행</span><strong id="powerflowTotalCount">0</strong>건</span>
+      <span><span class="flow-metric-label">최근 발행 속도</span><strong id="powerflowRate">0.0</strong>건/s</span>
+    </div>
+    <div id="powerflowBurst" class="flow-burst" role="img" aria-label="MQTT 발행 0건 / 계획 0건">
+      <div id="powerflowBurstRing" class="flow-burst-ring"><svg viewBox="0 0 72 72" focusable="false"
+          aria-hidden="true">
+          <rect x="17" y="21" width="38" height="30" />
+          <circle cx="29" cy="36" r="3" />
+          <circle cx="43" cy="36" r="3" />
+        </svg></div>
+      <div class="flow-burst-readout">
+        <span class="flow-burst-count" id="powerflowBurstCount">0건 / 0건</span>
+        <span class="flow-burst-percent" id="powerflowBurstPercent">0.0%</span>
+      </div>
+    </div>
+    <span id="powerflowA11yStatus" class="sr-only" role="status" aria-live="polite">대기. MQTT 브로커 발행 확인까지 표시</span>
+  </section>
 
-  <!-- 2. 실시간 핵심 통계 카드 -->
-  <div class="grid-stats">
-    <div class="stat-card" id="cardPower">
-      <div class="label">현재 유효 전력 (Active Power)</div>
-      <div class="value"><span id="valPower">0.0</span> <small>W</small></div>
-      <div class="sub">피상전력: <span id="valApparent">0.0</span> VA</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">부하 전류 (Current)</div>
-      <div class="value"><span id="valCurrent">0.00</span> <small>A</small></div>
-      <div class="sub">계측 전압: <span id="valVoltage">220.0</span> V</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">역률 (Power Factor)</div>
-      <div class="value"><span id="valPf">1.000</span></div>
-      <div class="sub">무효전력: <span id="valReactive">0.0</span> var</div>
-    </div>
-    <div class="stat-card" id="cardStatus">
-      <div class="label">시뮬레이션 상태</div>
-      <div class="value" style="font-size: 1.35rem; margin-top: 8px;">
-        <span id="badgeStatus" class="badge-status status-normal">대기 중</span>
-      </div>
-      <div class="sub">경과 시간: <span id="valTime">T+00s</span> / 최고: <span id="valMaxPower">0.0 W</span></div>
-    </div>
-  </div>
-
-  <!-- 3. 실시간 가전 기동 상태 칩 패널 -->
-  <div class="appliance-bar">
-    <div class="appliance-bar-title">6대 타겟 가전 실시간 동작 상태</div>
-    <div class="appliance-grid">
-      <div class="app-chip" id="chip_kettle">
-        <span class="name">전기포트</span>
-        <span class="state" id="state_kettle">대기</span>
-      </div>
-      <div class="app-chip" id="chip_induction">
-        <span class="name">인덕션</span>
-        <span class="state" id="state_induction">대기</span>
-      </div>
-      <div class="app-chip" id="chip_microwave">
-        <span class="name">전자레인지</span>
-        <span class="state" id="state_microwave">대기</span>
-      </div>
-      <div class="app-chip" id="chip_hair_dryer">
-        <span class="name">헤어드라이기</span>
-        <span class="state" id="state_hair_dryer">대기</span>
-      </div>
-      <div class="app-chip" id="chip_vacuum_cleaner">
-        <span class="name">진공청소기</span>
-        <span class="state" id="state_vacuum_cleaner">대기</span>
-      </div>
-      <div class="app-chip" id="chip_iron">
-        <span class="name">전기다리미</span>
-        <span class="state" id="state_iron">대기</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. 실시간 메인 전력 파형 차트 -->
-  <div class="chart-container">
-    <div class="chart-header">
+  <!-- 결정적 시나리오(E2E) 실행 제어 패널 -->
+  <div class="chart-container e2e-panel-container" id="e2eSection"
+    style="background: linear-gradient(135deg, #fff7f0, #ffffff); border: 1px solid #ffd2ad; box-shadow: 0 4px 24px rgba(41, 37, 36, 0.08); margin-bottom: 24px;">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid rgba(243, 121, 41, 0.2); padding-bottom: 12px;">
       <div>
-        <div class="chart-title">메인 분전반 다변량 전력 파형 (P, Q, S)</div>
-        <div class="chart-desc">유효전력(W), 무효전력(var), 피상전력(VA) 실시간 타임라인</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="e2eBtnTogglePanel" class="panel-toggle" aria-expanded="true"
+            aria-controls="e2ePanelBody" title="패널 접기/펼치기" onclick="togglePanel('e2ePanelBody')"></button>
+          <span id="e2ePanelTitle" style="font-size: 1.15rem; font-weight: 700; color: #292524; cursor: pointer;"
+            onclick="togglePanel('e2ePanelBody')">결정적 E2E 시나리오 실행 제어 패널</span>
+          <span id="e2eOverallStatusBadge" class="badge-status status-normal">IDLE</span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 0.82rem; color: #78716c;">Run ID:</span>
+        <span id="e2eRunIdDisplay"
+          style="font-family: monospace; font-size: 0.85rem; color: #b8490d; font-weight: 600;">—</span>
+        <!-- [3] 기존 실행 연결 컨트롤 -->
+        <div
+          style="display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; background: rgba(250, 250, 249, 0.6); padding: 4px 8px; border-radius: 0; border: 1px solid rgba(243, 121, 41, 0.3);">
+          <input type="text" id="e2eRunIdInput" placeholder="기존 run_id 입력"
+            style="background: #ffffff; color: #292524; border: 1px solid #d6d3d1; padding: 4px 8px; border-radius: 0; font-size: 0.8rem; font-family: monospace; width: 160px;" />
+          <button type="button" id="e2eBtnAttach" class="btn btn-secondary"
+            style="font-size: 0.78rem; padding: 4px 10px;" onclick="e2eAttachRun()">기존 실행 연결</button>
+        </div>
       </div>
     </div>
-    <div style="height: 340px;">
-      <canvas id="chartMain"></canvas>
+
+    <div id="e2ePanelBody">
+      <!-- 알림 및 안내 배너 영역 -->
+      <div id="e2eMessageArea"
+        style="display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: 0; font-size: 0.85rem; font-weight: 600;">
+      </div>
+      <div id="e2eNoticeBurst"
+        style="display: none; margin-bottom: 12px; padding: 8px 14px; border-radius: 0; font-size: 0.82rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #92400e;">
+        BURST 모드: 가상 시간 딜레이 없이 백엔드에서 즉시 전속력으로 MQTT 발행합니다. 화면 갱신보다 발행이 훨씬 빠르며 파형 그래프에는 실시간 표시되지 않습니다.
+      </div>
+      <div id="e2eNoticeLongRun"
+        style="display: none; margin-bottom: 12px; padding: 8px 14px; border-radius: 0; font-size: 0.82rem; background: rgba(217, 94, 18, 0.15); border: 1px solid rgba(217, 94, 18, 0.4); color: #b8490d;">
+        장기 시나리오(20일 이상): 총 계획 슬롯 수가 큰 대용량 시나리오입니다.
+      </div>
+
+      <!-- 설정 입력 폼 및 제어 버튼 -->
+      <div
+        style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; background: rgba(250, 250, 249, 0.5); padding: 14px 16px; border-radius: 0; border: 1px solid rgba(243, 121, 41, 0.2);">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="e2eScenarioSelect" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">시나리오:</label>
+          <select id="e2eScenarioSelect" class="speed-select" style="min-width: 260px; padding: 6px 10px;"
+            onchange="e2eOnScenarioChange()">
+            <option value="">시나리오 목록 불러오는 중...</option>
+          </select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="e2eHouseholdSelect" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">가구:</label>
+          <select id="e2eHouseholdSelect" class="speed-select" style="padding: 6px 10px; width: 90px;">
+            <option value="H001">H001</option>
+            <option value="H002">H002</option>
+            <option value="H003">H003</option>
+            <option value="H004">H004</option>
+            <option value="H005">H005</option>
+            <option value="H006">H006</option>
+            <option value="H007">H007</option>
+            <option value="H008">H008</option>
+            <option value="H009">H009</option>
+            <option value="H010">H010</option>
+          </select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="e2eRefDateInput" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">기준일자:</label>
+          <input type="date" id="e2eRefDateInput" class="speed-select" style="padding: 6px 10px;" value="2026-09-16" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="e2eModeSelect" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">실행 모드:</label>
+          <select id="e2eModeSelect" class="speed-select" style="padding: 6px 10px; width: 190px;"
+            onchange="e2eOnModeChange()">
+            <option value="BURST">BURST (최대속도)</option>
+            <option value="ACCELERATED">ACCELERATED (가속)</option>
+          </select>
+        </div>
+        <div id="e2eSpeedGroup" style="display: none; flex-direction: column; gap: 4px;">
+          <label for="e2eSpeedInput" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">배속:</label>
+          <input type="number" id="e2eSpeedInput" class="speed-select"
+            style="width: 80px; padding: 6px 8px; text-align: right;" value="1200" min="1" step="1" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <label for="e2ePollIntervalSelect" style="font-size: 0.8rem; font-weight: 600; color: #b8490d;">폴링 간격:</label>
+          <select id="e2ePollIntervalSelect" class="speed-select" style="padding: 6px 10px; width: 110px;"
+            onchange="e2eOnPollIntervalChange()">
+            <option value="500">0.5초</option>
+            <option value="1000" selected>1.0초 (기본)</option>
+            <option value="2000">2.0초</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-left: auto;">
+          <button type="button" id="e2eBtnStart" class="btn btn-execute"
+            style="background: #b8490d; border-color: rgba(243, 121, 41, 0.5);" onclick="e2eStartRun()">
+            ▶ E2E 실행 시작
+          </button>
+          <button type="button" id="e2eBtnStop" class="btn btn-secondary"
+            style="border-color: rgba(239, 68, 68, 0.4); color: #b91c1c;" onclick="e2eStopRun()" disabled>
+            ⏹ 세션 전체 중지
+          </button>
+        </div>
+      </div>
+
+      <!-- 가구별 진행 상태 및 제어 테이블 카드 -->
+      <div id="e2eStatusCard"
+        style="background: rgba(250, 250, 249, 0.7); border: 1px solid rgba(243, 121, 41, 0.2); border-radius: 0; padding: 12px; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(243, 121, 41, 0.3);">
+              <th style="width: 65px;">가구</th>
+              <th style="width: 170px;">시나리오</th>
+              <th style="width: 95px;">상태</th>
+              <th style="width: 150px;">발행 수 / 계획</th>
+              <th style="width: 80px;">결측</th>
+              <th style="width: 160px;">진행률 (슬롯기준)</th>
+              <th style="width: 90px;">일수</th>
+              <th>제어</th>
+            </tr>
+          </thead>
+          <tbody id="e2eHouseholdTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: #78716c; padding: 18px;">
+                실행 중인 E2E 시나리오가 없습니다. 설정을 선택하고 시작하거나 기존 run_id를 연결하세요.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- 5. 실시간 전류 및 역률 파형 차트 -->
-  <div class="chart-container">
-    <div class="chart-header">
+  <!-- 1~6. 실시간 모니터링 영역 (제어 바 ~ 이벤트 로그까지 단일 토글) -->
+  <div class="section-head">
+    <button type="button" id="monitoringToggleBtn" class="panel-toggle" aria-expanded="true"
+      aria-controls="monitoringBody" title="접기/펼치기" onclick="togglePanel('monitoringBody')"></button>
+    <span class="section-head-title" onclick="togglePanel('monitoringBody')">실시간 모니터링 (제어 · 원클릭 시나리오 · 통계 · 가전 상태 · 파형 · 이벤트 로그)</span>
+  </div>
+  <div id="monitoringBody" class="section-body">
+
+    <!-- 1. 실시간 제어 바 -->
+    <div class="legacy-controls">
+      <div class="controls">
+        <button id="btnStartSimulation" class="btn btn-execute" onclick="startMultiSimulation()">
+          ▶ 설정한 가구 실행
+        </button>
+        <button id="btnPause" class="btn btn-secondary" onclick="togglePause()" disabled>
+          일시정지
+        </button>
+        <button id="btnReset" class="btn btn-secondary" onclick="resetSimulation()">
+          초기화
+        </button>
+        <div class="date-control-group" style="display: inline-flex; align-items: center; gap: 6px;">
+          <label for="simDateInput" style="font-size: 0.85rem; font-weight: 600; color: #78716c;">기준 날짜:</label>
+          <input type="date" id="simDateInput" class="speed-select" style="padding: 6px 10px;" />
+          <label for="startTimeInput" style="font-size: 0.85rem; font-weight: 600; color: #78716c;"
+            title="비우면 현재 시각에서 시작. 지정하면 기준 날짜의 이 시각(KST)부터 시작하며, seed와 함께 쓰면 measured_at까지 재현됩니다">시작 시각:</label>
+          <input type="time" id="startTimeInput" class="speed-select" step="1" style="padding: 6px 8px;" />
+        </div>
+        <div class="fault-duration-group" style="display: inline-flex; align-items: center; gap: 6px;">
+          <label for="faultDurationInput" style="font-size: 0.85rem; font-weight: 600; color: #78716c;"
+            title="센서 고장 시나리오 결측 지속 시간(초, 1~3600)">결측 시간:</label>
+          <input type="number" id="faultDurationInput" class="speed-select" min="1" max="3600" step="1" value="120"
+            style="width: 76px; padding: 6px 8px; text-align: right;" placeholder="120" />
+          <span style="font-size: 0.8rem; color: #78716c;">초 (가상 시간 기준, 배속 적용)</span>
+        </div>
+        <div class="seed-control-group" style="display: inline-flex; align-items: center; gap: 6px;">
+          <label for="seedInput" style="font-size: 0.85rem; font-weight: 600; color: #78716c;"
+            title="같은 seed와 같은 가구/시나리오로 시작하면 계측값이 그대로 재현됩니다 (0~2147483647)">Seed:</label>
+          <input type="number" id="seedInput" class="speed-select" min="0" max="2147483647" step="1"
+            style="width: 120px; padding: 6px 8px; text-align: right;" placeholder="비우면 자동" />
+          <span id="currentSeedLabel" style="font-size: 0.8rem; color: #78716c;">현재 seed: -</span>
+          <button id="btnCopySeed" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;"
+            onclick="copyCurrentSeed()" disabled>복사</button>
+        </div>
+        <div class="observe-control-group"
+          style="display: inline-flex; align-items: center; gap: 6px; background: rgba(243, 121, 41, 0.1); padding: 4px 10px; border-radius: 0; border: 1px solid rgba(243, 121, 41, 0.3);">
+          <label for="observedHouseSelect" style="font-size: 0.85rem; font-weight: 700; color: #b8490d;">관찰 가구:</label>
+          <select id="observedHouseSelect" class="speed-select" style="padding: 4px 8px; font-weight: bold;"
+            onchange="changeObservedHouse(this.value)">
+            <option value="H001">H001</option>
+            <option value="H002">H002</option>
+            <option value="H003">H003</option>
+            <option value="H004">H004</option>
+            <option value="H005">H005</option>
+            <option value="H006">H006</option>
+            <option value="H007">H007</option>
+            <option value="H008">H008</option>
+            <option value="H009">H009</option>
+            <option value="H010">H010</option>
+          </select>
+        </div>
+        <select id="speedSelect" class="speed-select" onchange="changeSpeed(this.value)">
+          <option value="1000">1x (실시간 1.0초)</option>
+          <option value="500">2x 배속 (0.5초)</option>
+          <option value="200">5x 배속 (0.2초)</option>
+          <option value="100">10x 배속 (0.1초)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 발표용 원클릭 시연 제어 카드 -->
+    <div class="presentation-panel" id="presentationPanel">
       <div>
-        <div class="chart-title">부하 전류(I) 및 역률(PF) 동적 변화</div>
-        <div class="chart-desc">기동 돌입전류 오버슈트 및 위상차에 따른 역률 변동 실시간 추적</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 1.05rem; font-weight: 700; color: #292524;"> 원클릭 시나리오</span>
+          <span class="badge-status status-running" style="font-size: 0.72rem; padding: 2px 8px;">H001 전용</span>
+        </div>
+        <div style="font-size: 0.82rem; color: #78716c;">
+          버튼 클릭 시 초기화 ➔ H001 가구 설정 ➔ 시나리오 할당 ➔ MQTT 데이터 발행이 즉시 자동 진행됩니다.
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <button id="btnDemoNormalRoutine" class="presentation-btn-normal" onclick="startNormalRoutineDemo()">
+          ▶ H001 정상 일상
+        </button>
+        <button id="btnDemoRoutineMissed" class="presentation-btn-missed" onclick="startRoutineMissedDemo()">
+          ▶ H001 이상 감지
+        </button>
+        <button id="btnDemoSensorFault" class="presentation-btn-fault" onclick="startSensorFaultDemo()">
+          ▶ H001 센서 고장
+        </button>
       </div>
     </div>
-    <div style="height: 240px;">
-      <canvas id="chartSecondary"></canvas>
-    </div>
-  </div>
 
-  <!-- 6. 이벤트 로그 테이블 -->
-  <div class="table-container">
-    <div class="chart-header">
-      <div>
-        <div class="chart-title">가전 기동 및 시연 이벤트 로그</div>
-        <div class="chart-desc">타임라인별 감지된 전력 변화점 및 피크 도달 이력</div>
+    <!-- 시연 진행 안내 배너 -->
+    <div id="timelineNotice" class="timeline-notice">
+      [준비 완료] H001 정상 일상 또는 H001 이상 감지 버튼을 선택하세요.
+    </div>
+
+    <!-- 고급 설정 (다중 가구 시뮬레이션 설정 H001 ~ H010 접기/펼치기) -->
+    <details class="advanced-config-details" id="advancedConfigDetails" style="margin-bottom: 20px;">
+      <summary style="font-size: 0.88rem; margin-bottom: 8px;">고급 설정 및 개발 도구 (다중 가구 설정 접기/펼치기)</summary>
+      <div class="chart-container" id="householdConfigCard" style="padding: 16px 20px; margin-bottom: 0;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div class="chart-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>가구별 시나리오 설정</span>
+              <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(H001 ~ H010)</span>
+            </div>
+            <div class="chart-desc">각 가구의 실행 여부와 시나리오를 선택하세요. 상단의 [▶ 설정한 가구 실행] 버튼으로 동시 시작됩니다.</div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.8rem; color: #78716c; margin-right: 4px; font-weight: 600;">프리셋:</span>
+            <button type="button" id="btnPresetPeak" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('peak_single')">H001 피크 단독</button>
+            <button type="button" id="btnPresetMissed" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('missed_single')">H001 루틴누락 단독</button>
+            <button type="button" id="btnPresetFault" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('fault_single')">H001 센서 고장</button>
+            <button type="button" id="btnPresetManual" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('manual_single')">H001 수동제어 단독</button>
+            <button type="button" id="btnPresetMulti" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('comprehensive')">종합 시연
+              (H001~H004)</button>
+            <button type="button" id="btnPresetAllRandom" class="btn btn-secondary"
+              style="font-size: 0.75rem; padding: 4px 8px;" onclick="applyPreset('all_random')">전체 랜덤 (10가구)</button>
+          </div>
+        </div>
+        <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">실행</th>
+                <th style="width: 100px;">가구</th>
+                <th style="width: 200px;">시나리오</th>
+                <th style="width: 120px;">상태</th>
+                <th>최신 전력</th>
+              </tr>
+            </thead>
+            <tbody id="householdTableBody">
+              <!-- JS에서 H001 ~ H010 행 동적 생성 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+
+
+    <!-- 2. 실시간 핵심 통계 카드 -->
+    <div class="grid-stats">
+      <div class="stat-card" id="cardPower">
+        <div class="label">현재 유효 전력 (Active Power)</div>
+        <div class="value"><span id="valPower">0.0</span> <small>W</small></div>
+        <div class="sub">피상전력: <span id="valApparent">0.0</span> VA</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">부하 전류 (Current)</div>
+        <div class="value"><span id="valCurrent">0.00</span> <small>A</small></div>
+        <div class="sub">계측 전압: <span id="valVoltage">220.0</span> V</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">역률 (Power Factor)</div>
+        <div class="value"><span id="valPf">1.000</span></div>
+        <div class="sub">무효전력: <span id="valReactive">0.0</span> var</div>
+      </div>
+      <div class="stat-card" id="cardStatus">
+        <div class="label">시뮬레이션 상태</div>
+        <div class="value" style="font-size: 1.35rem; margin-top: 8px;">
+          <span id="badgeStatus" class="badge-status status-normal">대기 중</span>
+        </div>
+        <div class="sub">경과 시간: <span id="valTime">T+00s</span> / 최고: <span id="valMaxPower">0.0 W</span></div>
       </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>발생 시각</th>
-          <th>이벤트 구분</th>
-          <th>가동 가전</th>
-          <th>계측 전력</th>
-          <th>상세 설명</th>
-        </tr>
-      </thead>
-      <tbody id="eventTableBody">
-        <tr>
-          <td colspan="5" style="text-align:center; color:#94a3b8;">시뮬레이션을 시작하면 실시간 이벤트가 기록됩니다.</td>
-        </tr>
-      </tbody>
-    </table>
+
+
+
+    <!-- 3. 실시간 가전 기동 상태 칩 패널 -->
+    <div class="appliance-bar">
+      <div class="appliance-bar-title">6대 타겟 가전 실시간 동작 상태 (관찰 가구: <span id="observedHouseBadge"
+          style="color:#b8490d; font-weight:700;">H001</span>) - 수동 제어(manual) 가구일 때 클릭하여 ON/OFF</div>
+      <div class="appliance-grid">
+        <button type="button" class="app-chip" id="chip_kettle" aria-pressed="false" disabled
+          onclick="toggleDevice('kettle')">
+          <span class="name">전기포트</span>
+          <span class="state" id="state_kettle">OFF</span>
+        </button>
+        <button type="button" class="app-chip" id="chip_induction" aria-pressed="false" disabled
+          onclick="toggleDevice('induction')">
+          <span class="name">인덕션</span>
+          <span class="state" id="state_induction">OFF</span>
+        </button>
+        <button type="button" class="app-chip" id="chip_microwave" aria-pressed="false" disabled
+          onclick="toggleDevice('microwave')">
+          <span class="name">전자레인지</span>
+          <span class="state" id="state_microwave">OFF</span>
+        </button>
+        <button type="button" class="app-chip" id="chip_hair_dryer" aria-pressed="false" disabled
+          onclick="toggleDevice('hair_dryer')">
+          <span class="name">헤어드라이기</span>
+          <span class="state" id="state_hair_dryer">OFF</span>
+        </button>
+        <button type="button" class="app-chip" id="chip_vacuum_cleaner" aria-pressed="false" disabled
+          onclick="toggleDevice('vacuum_cleaner')">
+          <span class="name">진공청소기</span>
+          <span class="state" id="state_vacuum_cleaner">OFF</span>
+        </button>
+        <button type="button" class="app-chip" id="chip_iron" aria-pressed="false" disabled
+          onclick="toggleDevice('iron')">
+          <span class="name">전기다리미</span>
+          <span class="state" id="state_iron">OFF</span>
+        </button>
+      </div>
+    </div>
+
+
+
+    <!-- 4. 실시간 메인 전력 파형 차트 -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">메인 분전반 다변량 전력 파형 (P, Q, S)</div>
+          <div class="chart-desc">유효전력(W), 무효전력(var), 피상전력(VA) 실시간 타임라인</div>
+        </div>
+      </div>
+      <div style="height: 340px;">
+        <canvas id="chartMain"></canvas>
+      </div>
+    </div>
+
+    <!-- 5. 실시간 전류 및 역률 파형 차트 -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">부하 전류(I) 및 역률(PF) 동적 변화</div>
+          <div class="chart-desc">기동 돌입전류 오버슈트 및 위상차에 따른 역률 변동 실시간 추적</div>
+        </div>
+      </div>
+      <div style="height: 240px;">
+        <canvas id="chartSecondary"></canvas>
+      </div>
+    </div>
+
+    <!-- 6. 이벤트 로그 테이블 -->
+    <div class="table-container">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">가전 기동 및 시연 이벤트 로그</div>
+          <div class="chart-desc">타임라인별 감지된 전력 변화점 및 피크 도달 이력</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>발생 시각</th>
+            <th>이벤트 구분</th>
+            <th>가동 가전</th>
+            <th>계측 전력</th>
+            <th>상세 설명</th>
+          </tr>
+        </thead>
+        <tbody id="eventTableBody">
+          <tr>
+            <td colspan="5" style="text-align:center; color:#78716c;">시뮬레이션을 시작하면 실시간 이벤트가 기록됩니다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
-
-  <script>
-    // ==========================================
-    // 1. 물리 엔진 및 6대 가전 프로파일 정의 (simulator.py와 100% 동일)
-    // ==========================================
-    const DEVICE_PROFILES = {
-      kettle: { name_ko: "전기포트", nominal_w: [1500, 1800], inrush_factor: 1.02, pf_nominal: [0.98, 1.00] },
-      induction: { name_ko: "인덕션", nominal_w: [1300, 1750], inrush_factor: 1.08, pf_nominal: [0.91, 0.95] },
-      iron: { name_ko: "전기다리미", nominal_w: [1200, 1550], inrush_factor: 1.02, pf_nominal: [0.98, 1.00] },
-      microwave: { name_ko: "전자레인지", nominal_w: [850, 1150], inrush_factor: 1.35, pf_nominal: [0.88, 0.94] },
-      hair_dryer: { name_ko: "헤어드라이기", nominal_w: [800, 1200], inrush_factor: 1.20, pf_nominal: [0.94, 0.98] },
-      vacuum_cleaner: { name_ko: "진공청소기", nominal_w: [700, 950], inrush_factor: 1.50, pf_nominal: [0.75, 0.85] }
-    };
-
-    // 상태 관리
-    let houseEnv = { voltage: 220.0, base_p: 55.0, fridge_p: 0.0, fridge_active: false, fridge_timer: 60 };
-    let deviceStates = {};
-    function initDevices() {
-      Object.keys(DEVICE_PROFILES).forEach(dev => {
-        deviceStates[dev] = { state: "OFF", p: 0, pf: 0.95, session_remaining: 0, nominal_w: 0, nominal_pf: 0 };
-      });
-    }
-    initDevices();
-
-    // 시뮬레이션 제어 변수
-    let timerId = null;
-    let currentMode = null; // 'peak' or 'random'
-    let currentSec = 0;
-    let intervalMs = 1000;
-    let isPaused = false;
-    let maxPowerRecorded = 0.0;
-
-    // 시계열 데이터 버퍼
-    const historyData = {
-      times: [], activeP: [], reactiveP: [], apparentP: [],
-      currents: [], pfs: [], voltages: [], activeLabels: []
-    };
-
-    // ==========================================
-    // 2. Chart.js 인스턴스 초기화
-    // ==========================================
-    const ctxMain = document.getElementById('chartMain').getContext('2d');
-    const chartMain = new Chart(ctxMain, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: '유효전력 (Active P, W)',
-            data: [],
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
-            borderWidth: 2.2,
-            fill: true,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: '피상전력 (Apparent S, VA)',
-            data: [],
-            borderColor: '#818cf8',
-            borderWidth: 1.8,
-            borderDash: [4, 4],
-            fill: false,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: '무효전력 (Reactive Q, var)',
-            data: [],
-            borderColor: '#f59e0b',
-            borderWidth: 1.5,
-            fill: false,
-            tension: 0.15,
-            pointRadius: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 0 },
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: '#cbd5e1' } }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(51, 65, 85, 0.4)' },
-            ticks: { color: '#94a3b8', maxTicksLimit: 15 }
-          },
-          y: {
-            grid: { color: 'rgba(51, 65, 85, 0.4)' },
-            ticks: { color: '#94a3b8' },
-            suggestedMin: 0,
-            suggestedMax: 4000
-          }
-        }
-      }
-    });
-
-    const ctxSec = document.getElementById('chartSecondary').getContext('2d');
-    const chartSecondary = new Chart(ctxSec, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: '부하 전류 (Current I, A)',
-            data: [],
-            borderColor: '#f43f5e',
-            borderWidth: 2,
-            pointRadius: 0,
-            yAxisID: 'yCurrent'
-          },
-          {
-            label: '역률 (Power Factor PF)',
-            data: [],
-            borderColor: '#10b981',
-            borderWidth: 1.8,
-            pointRadius: 0,
-            yAxisID: 'yPf'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 0 },
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: '#cbd5e1' } }
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(51, 65, 85, 0.4)' },
-            ticks: { color: '#94a3b8', maxTicksLimit: 15 }
-          },
-          yCurrent: {
-            type: 'linear',
-            position: 'left',
-            title: { display: true, text: '부하 전류 (A)', color: '#f43f5e' },
-            grid: { color: 'rgba(51, 65, 85, 0.4)' },
-            ticks: { color: '#f43f5e' }
-          },
-          yPf: {
-            type: 'linear',
-            position: 'right',
-            min: 0.6,
-            max: 1.05,
-            title: { display: true, text: '역률 (PF)', color: '#10b981' },
-            grid: { drawOnChartArea: false },
-            ticks: { color: '#10b981' }
-          }
-        }
-      }
-    });
-
-    // ==========================================
-    // 3. 물리 계산 로직 (1초 틱)
-    // ==========================================
-    function gaussianRandom(mean = 0, stdev = 1) {
-      let u = 1 - Math.random();
-      let v = Math.random();
-      let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-      return z * stdev + mean;
-    }
-
-    function stepPhysicsTick(sec) {
-      // 1. 전압 AR-1 및 기저부하
-      houseEnv.voltage = 0.98 * houseEnv.voltage + 0.02 * 220.0 + gaussianRandom(0, 0.12);
-      houseEnv.voltage = Math.min(228, Math.max(212, houseEnv.voltage));
-      let baseP = 55.0 + gaussianRandom(0, 0.8);
-      let baseQ = baseP * 0.42;
-
-      // 2. 피크 시나리오 이벤트 주입 (sec 기준)
-      let activeNames = [];
-      let eventNoticeText = null;
-
-      if (currentMode === 'peak') {
-        if (sec === 10) {
-          // 10초 피크 기동! (전기포트 1700W + 인덕션 1600W)
-          deviceStates.kettle = { state: "RUNNING", p: 1720.0, pf: 0.99, session_remaining: 21 };
-          deviceStates.induction = { state: "RUNNING", p: 1640.0, pf: 0.93, session_remaining: 35 };
-          eventNoticeText = "피크 발생 (전기포트 1,720W + 인덕션 1,640W 동시 기동 -> 3,400W+ 돌파)";
-          addEventRow(sec, "피크 경보", "전기포트, 인덕션", "3,400W+ 돌파", eventNoticeText);
-        } else if (sec === 31) {
-          // 31초 전기포트 종료
-          deviceStates.kettle.state = "OFF";
-          deviceStates.kettle.p = 0;
-          eventNoticeText = "피크 해소 (전기포트 정지 -> 인덕션 단독 가동 지속)";
-          addEventRow(sec, "피크 해소", "전기포트 종료", "1,650W 수준", eventNoticeText);
-        } else if (sec === 45) {
-          // 45초 인덕션 종료
-          deviceStates.induction.state = "OFF";
-          deviceStates.induction.p = 0;
-          eventNoticeText = "정상 복귀 (인덕션 정지 -> 평상시 대기전력 약 60W 복귀)";
-          addEventRow(sec, "정상 복귀", "모든 가전 종료", "60W 수준", eventNoticeText);
-        }
-      } else if (currentMode === 'random') {
-        // 랜덤 가전 트리거
-        Object.keys(DEVICE_PROFILES).forEach(dev => {
-          let st = deviceStates[dev];
-          let prof = DEVICE_PROFILES[dev];
-          if (st.state === "OFF" && Math.random() < 0.02) {
-            st.state = "RUNNING";
-            st.session_remaining = Math.floor(Math.random() * 15) + 10;
-            st.p = prof.nominal_w[0] + Math.random() * (prof.nominal_w[1] - prof.nominal_w[0]);
-            st.pf = prof.pf_nominal[0];
-            addEventRow(sec, "가전 켜짐", prof.name_ko, `${st.p.toFixed(0)} W`, "랜덤 동작");
-          } else if (st.state === "RUNNING") {
-            st.session_remaining--;
-            if (st.session_remaining <= 0) {
-              st.state = "OFF";
-              st.p = 0;
-              addEventRow(sec, "가전 꺼짐", prof.name_ko, "0 W", "가동 종료");
-            }
-          }
-        });
-      }
-
-      // 3. 총합 부하 계산
-      let totalP = baseP;
-      let totalQ = baseQ;
-
-      Object.keys(deviceStates).forEach(dev => {
-        let st = deviceStates[dev];
-        if (st.state === "RUNNING") {
-          totalP += st.p + gaussianRandom(0, 1.2);
-          let q = st.p * Math.sqrt(Math.max(0, 1 - st.pf * st.pf)) / st.pf;
-          totalQ += q;
-          activeNames.push(DEVICE_PROFILES[dev].name_ko);
-        }
-      });
-
-      totalP = Math.max(0, totalP);
-      totalQ = Math.max(0, totalQ);
-      let apparentS = Math.sqrt(totalP * totalP + totalQ * totalQ);
-      let pf = apparentS > 1 ? Math.min(1.0, Math.max(0.1, totalP / apparentS)) : 1.0;
-      let currentA = apparentS / houseEnv.voltage;
-
-      return {
-        sec, totalP, totalQ, apparentS, pf,
-        voltage: houseEnv.voltage, currentA,
-        activeNames, eventNoticeText
-      };
-    }
-
-    // ==========================================
-    // 4. UI 갱신 및 시뮬레이션 루프
-    // ==========================================
-    function tick() {
-      currentSec++;
-      const metrics = stepPhysicsTick(currentSec);
-
-      // 데이터 버퍼 저장
-      historyData.times.push(metrics.sec);
-      historyData.activeP.push(metrics.totalP.toFixed(1));
-      historyData.reactiveP.push(metrics.totalQ.toFixed(1));
-      historyData.apparentP.push(metrics.apparentS.toFixed(1));
-      historyData.currents.push(metrics.currentA.toFixed(2));
-      historyData.pfs.push(metrics.pf.toFixed(3));
-      historyData.voltages.push(metrics.voltage.toFixed(1));
-      historyData.activeLabels.push(metrics.activeNames.join(', ') || '대기');
-
-      // 최고 전력 갱신
-      if (metrics.totalP > maxPowerRecorded) {
-        maxPowerRecorded = metrics.totalP;
-      }
-
-      // 통계 카드 갱신
-      document.getElementById('valPower').textContent = metrics.totalP.toFixed(1);
-      document.getElementById('valApparent').textContent = metrics.apparentS.toFixed(1);
-      document.getElementById('valCurrent').textContent = metrics.currentA.toFixed(2);
-      document.getElementById('valVoltage').textContent = metrics.voltage.toFixed(1);
-      document.getElementById('valPf').textContent = metrics.pf.toFixed(3);
-      document.getElementById('valReactive').textContent = metrics.totalQ.toFixed(1);
-      document.getElementById('valTime').textContent = `T+${String(currentSec).padStart(2, '0')}s`;
-      document.getElementById('valMaxPower').textContent = `${maxPowerRecorded.toFixed(1)} W`;
-
-      // 상태 배지 및 카드 스타일
-      const cardPower = document.getElementById('cardPower');
-      const badgeStatus = document.getElementById('badgeStatus');
-      const timelineNotice = document.getElementById('timelineNotice');
-
-      if (metrics.totalP >= 3000.0) {
-        cardPower.className = "stat-card alert-card";
-        badgeStatus.className = "badge-status status-peak";
-        badgeStatus.textContent = "피크 경보 (3,000W+ 초과!)";
-        timelineNotice.style.color = "#f87171";
-        timelineNotice.style.borderColor = "#ef4444";
-        timelineNotice.innerHTML = `<strong>[피크 경보]</strong> T+${currentSec}s: 소비전력 <strong>${metrics.totalP.toFixed(1)} W</strong> - 전기포트와 인덕션이 동시 기동 중입니다!`;
-      } else if (metrics.totalP >= 1000.0) {
-        cardPower.className = "stat-card";
-        badgeStatus.className = "badge-status status-running";
-        badgeStatus.textContent = "가전 가동 중";
-        timelineNotice.style.color = "#38bdf8";
-        timelineNotice.style.borderColor = "rgba(56, 189, 248, 0.3)";
-        timelineNotice.innerHTML = `<strong>[진행 중]</strong> T+${currentSec}s: 소비전력 ${metrics.totalP.toFixed(1)} W (가동 가전: ${metrics.activeNames.join(', ')})`;
-      } else {
-        cardPower.className = "stat-card";
-        badgeStatus.className = "badge-status status-normal";
-        badgeStatus.textContent = "정상 대기";
-        if (currentMode === 'peak' && currentSec < 10) {
-          timelineNotice.innerHTML = `<strong>[대기 중]</strong> T+${currentSec}s: 정상 대기전력 상태입니다. <strong>10초에 3,000W+ 피크 발생 예정!</strong> (카운트다운: ${10 - currentSec}초)`;
-        } else if (currentMode === 'peak' && currentSec >= 45) {
-          timelineNotice.innerHTML = `<strong>[시연 완료]</strong> T+${currentSec}s: 모든 가전이 종료되어 평상시 대기 상태로 복귀했습니다.`;
-        }
-      }
-
-      // 가전 칩 상태 갱신
-      Object.keys(DEVICE_PROFILES).forEach(dev => {
-        const chip = document.getElementById(`chip_${dev}`);
-        const stLabel = document.getElementById(`state_${dev}`);
-        const isRunning = deviceStates[dev].state === "RUNNING";
-
-        if (isRunning) {
-          const isPeakApp = (dev === "kettle" || dev === "induction") && metrics.totalP >= 3000.0;
-          chip.className = isPeakApp ? "app-chip active peak-app" : "app-chip active";
-          stLabel.textContent = `ON (${deviceStates[dev].p.toFixed(0)}W)`;
-        } else {
-          chip.className = "app-chip";
-          stLabel.textContent = "대기";
-        }
-      });
-
-      // Chart.js 실시간 업데이트
-      const label = `${metrics.sec}s`;
-      chartMain.data.labels.push(label);
-      chartMain.data.datasets[0].data.push(metrics.totalP);
-      chartMain.data.datasets[1].data.push(metrics.apparentS);
-      chartMain.data.datasets[2].data.push(metrics.totalQ);
-      chartMain.update('none');
-
-      chartSecondary.data.labels.push(label);
-      chartSecondary.data.datasets[0].data.push(metrics.currentA);
-      chartSecondary.data.datasets[1].data.push(metrics.pf);
-      chartSecondary.update('none');
-
-      // 60초 도달 시 피크 시연 자동 완료
-      if (currentMode === 'peak' && currentSec >= 60) {
-        clearInterval(timerId);
-        timerId = null;
-        document.getElementById('btnPause').disabled = true;
-        badgeStatus.textContent = "시연 완료 (60s 완주)";
-      }
-    }
-
-    // ==========================================
-    // 4-A. 웹 서버(web_server.py) 실제 MQTT 연동 로직
-    // ==========================================
-    let isServerConnected = false;
-    let evtSource = null;
-
-    async function checkServerConnection() {
-      try {
-        const res = await fetch('/api/status', { method: 'GET' });
-        if (res.ok) {
-          const data = await res.json();
-          isServerConnected = true;
-          const indicator = document.getElementById('serverIndicator');
-          if (indicator) {
-            indicator.className = "badge-status status-normal";
-            indicator.innerHTML = `MQTT 브로커 연동 모드 (${data.broker}) - 실제 발행 활성화`;
-          }
-        }
-      } catch (e) {
-        isServerConnected = false;
-        const indicator = document.getElementById('serverIndicator');
-        if (indicator) {
-          indicator.className = "badge-status status-running";
-          indicator.innerHTML = "브라우저 단독 시각화 모드 (로컬 엔진)";
-        }
-      }
-    }
-
-    // 서버에서 날아온 실제 MQTT 계측치 렌더링
-    function processServerMetrics(m) {
-      currentSec = m.sec;
-
-      // 데이터 버퍼 저장
-      historyData.times.push(m.sec);
-      historyData.activeP.push(m.totalP.toFixed(1));
-      historyData.reactiveP.push(m.totalQ.toFixed(1));
-      historyData.apparentP.push(m.apparentS.toFixed(1));
-      historyData.currents.push(m.currentA.toFixed(2));
-      historyData.pfs.push(m.pf.toFixed(3));
-      historyData.voltages.push(m.voltage.toFixed(1));
-      historyData.activeLabels.push(m.activeNames.join(', ') || '대기');
-
-      if (m.totalP > maxPowerRecorded) {
-        maxPowerRecorded = m.totalP;
-      }
-
-      // 통계 카드 갱신
-      document.getElementById('valPower').textContent = m.totalP.toFixed(1);
-      document.getElementById('valApparent').textContent = m.apparentS.toFixed(1);
-      document.getElementById('valCurrent').textContent = m.currentA.toFixed(2);
-      document.getElementById('valVoltage').textContent = m.voltage.toFixed(1);
-      document.getElementById('valPf').textContent = m.pf.toFixed(3);
-      document.getElementById('valReactive').textContent = m.totalQ.toFixed(1);
-      document.getElementById('valTime').textContent = `T+${String(m.sec).padStart(2, '0')}s`;
-      document.getElementById('valMaxPower').textContent = `${maxPowerRecorded.toFixed(1)} W`;
-
-      // 상태 배지 및 스타일
-      const cardPower = document.getElementById('cardPower');
-      const badgeStatus = document.getElementById('badgeStatus');
-      const timelineNotice = document.getElementById('timelineNotice');
-
-      if (m.totalP >= 3000.0) {
-        cardPower.className = "stat-card alert-card";
-        badgeStatus.className = "badge-status status-peak";
-        badgeStatus.textContent = "피크 경보 (3,000W+ 초과!)";
-        timelineNotice.style.color = "#f87171";
-        timelineNotice.style.borderColor = "#ef4444";
-        timelineNotice.innerHTML = `<strong>[실제 MQTT 발행 중]</strong> T+${m.sec}s: 소비전력 <strong>${m.totalP.toFixed(1)} W</strong> - Mosquitto 및 Kafka로 피크 데이터가 실시간 전송 중입니다!`;
-      } else if (m.totalP >= 1000.0) {
-        cardPower.className = "stat-card";
-        badgeStatus.className = "badge-status status-running";
-        badgeStatus.textContent = "가전 가동 중 (MQTT 발행)";
-        timelineNotice.style.color = "#38bdf8";
-        timelineNotice.style.borderColor = "rgba(56, 189, 248, 0.3)";
-        timelineNotice.innerHTML = `<strong>[실제 MQTT 발행 중]</strong> T+${m.sec}s: 소비전력 ${m.totalP.toFixed(1)} W (가전: ${m.activeNames.join(', ')})`;
-      } else {
-        cardPower.className = "stat-card";
-        badgeStatus.className = "badge-status status-normal";
-        badgeStatus.textContent = "정상 대기 (MQTT 발행)";
-        timelineNotice.innerHTML = `<strong>[실제 MQTT 발행 중]</strong> T+${m.sec}s: 대기전력 상태 (카프카 토픽 power.raw.v1로 실시간 전송 중)`;
-      }
-
-      // 이벤트 로그 기록
-      if (m.eventNoticeText) {
-        let evType = "피크 경보";
-        if (m.eventNoticeText.includes("해소")) evType = "피크 해소";
-        else if (m.eventNoticeText.includes("복귀")) evType = "정상 복귀";
-        addEventRow(m.sec, evType, m.activeNames.join(', ') || '가전 정지', `${m.totalP.toFixed(0)} W`, m.eventNoticeText);
-      }
-
-      // 6대 가전 칩 갱신
-      Object.keys(DEVICE_PROFILES).forEach(dev => {
-        const chip = document.getElementById(`chip_${dev}`);
-        const stLabel = document.getElementById(`state_${dev}`);
-        const devKo = DEVICE_PROFILES[dev].name_ko;
-        const isRunning = m.activeNames.includes(devKo);
-
-        if (isRunning) {
-          const isPeakApp = (dev === "kettle" || dev === "induction") && m.totalP >= 3000.0;
-          chip.className = isPeakApp ? "app-chip active peak-app" : "app-chip active";
-          stLabel.textContent = "ON (가동 중)";
-        } else {
-          chip.className = "app-chip";
-          stLabel.textContent = "대기";
-        }
-      });
-
-      // Chart.js 갱신
-      const label = `${m.sec}s`;
-      chartMain.data.labels.push(label);
-      chartMain.data.datasets[0].data.push(m.totalP);
-      chartMain.data.datasets[1].data.push(m.apparentS);
-      chartMain.data.datasets[2].data.push(m.totalQ);
-      chartMain.update('none');
-
-      chartSecondary.data.labels.push(label);
-      chartSecondary.data.datasets[0].data.push(m.currentA);
-      chartSecondary.data.datasets[1].data.push(m.pf);
-      chartSecondary.update('none');
-
-      if (currentMode === 'peak' && m.sec >= 60) {
-        if (evtSource) { evtSource.close(); evtSource = null; }
-        document.getElementById('btnPause').disabled = true;
-        badgeStatus.textContent = "시연 완료 (60s 완주)";
-      }
-    }
-
-    // ==========================================
-    // 5. 버튼 컨트롤 핸들러 (서버 연동 지원)
-    // ==========================================
-    async function startPeakDemo() {
-      resetSimulation();
-      currentMode = 'peak';
-      document.getElementById('btnPause').disabled = false;
-      document.getElementById('btnPause').textContent = "일시정지";
-      isPaused = false;
-      document.getElementById('badgeStatus').className = "badge-status status-normal";
-      document.getElementById('badgeStatus').textContent = "피크 시연 진행 중";
-
-      if (isServerConnected) {
-        // [서버 모드]: 실제 MQTT 발행 API 호출 + SSE 스트림 수신
-        try {
-          await fetch('/api/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scenario: 'peak', house: 'H001' })
-          });
-
-          if (evtSource) evtSource.close();
-          evtSource = new EventSource('/api/stream');
-          evtSource.onmessage = (e) => {
-            if (e.data && e.data.startsWith('{')) {
-              processServerMetrics(JSON.parse(e.data));
-            }
-          };
-          return;
-        } catch (err) {
-          console.warn("서버 호출 실패, 로컬 모드로 폴백:", err);
-        }
-      }
-
-      // [로컬 모드]: 브라우저 단독 실행
-      tick();
-      timerId = setInterval(tick, intervalMs);
-    }
-
-    async function startRandomSimulation() {
-      resetSimulation();
-      currentMode = 'random';
-      document.getElementById('btnPause').disabled = false;
-      document.getElementById('btnPause').textContent = "일시정지";
-      isPaused = false;
-      document.getElementById('badgeStatus').className = "badge-status status-running";
-      document.getElementById('badgeStatus').textContent = "연속 시뮬레이션 중";
-
-      if (isServerConnected) {
-        try {
-          await fetch('/api/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scenario: 'random', house: 'H001' })
-          });
-
-          if (evtSource) evtSource.close();
-          evtSource = new EventSource('/api/stream');
-          evtSource.onmessage = (e) => {
-            if (e.data && e.data.startsWith('{')) {
-              processServerMetrics(JSON.parse(e.data));
-            }
-          };
-          return;
-        } catch (err) {
-          console.warn("서버 호출 실패, 로컬 모드로 폴백:", err);
-        }
-      }
-
-      tick();
-      timerId = setInterval(tick, intervalMs);
-    }
-
-    async function togglePause() {
-      if (isServerConnected) {
-        if (!isPaused) {
-          if (evtSource) { evtSource.close(); evtSource = null; }
-          await fetch('/api/stop', { method: 'POST' }).catch(() => { });
-          isPaused = true;
-          document.getElementById('btnPause').textContent = "재생";
-          document.getElementById('badgeStatus').textContent = "일시정지됨";
-        } else {
-          isPaused = false;
-          document.getElementById('btnPause').textContent = "일시정지";
-          await fetch('/api/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scenario: currentMode, house: 'H001' })
-          }).catch(() => { });
-          evtSource = new EventSource('/api/stream');
-          evtSource.onmessage = (e) => {
-            if (e.data && e.data.startsWith('{')) {
-              processServerMetrics(JSON.parse(e.data));
-            }
-          };
-        }
-        return;
-      }
-
-      if (!timerId && !isPaused) return;
-
-      if (!isPaused) {
-        clearInterval(timerId);
-        timerId = null;
-        isPaused = true;
-        document.getElementById('btnPause').textContent = "재생";
-        document.getElementById('badgeStatus').textContent = "일시정지됨";
-      } else {
-        isPaused = false;
-        document.getElementById('btnPause').textContent = "일시정지";
-        timerId = setInterval(tick, intervalMs);
-      }
-    }
-
-    async function resetSimulation() {
-      if (isServerConnected) {
-        if (evtSource) { evtSource.close(); evtSource = null; }
-        await fetch('/api/stop', { method: 'POST' }).catch(() => { });
-      }
-
-      if (timerId) {
-        clearInterval(timerId);
-        timerId = null;
-      }
-      currentSec = 0;
-      isPaused = false;
-      maxPowerRecorded = 0.0;
-      initDevices();
-
-      // 버퍼 초기화
-      Object.keys(historyData).forEach(k => historyData[k] = []);
-
-      // 차트 초기화
-      chartMain.data.labels = [];
-      chartMain.data.datasets.forEach(ds => ds.data = []);
-      chartMain.update();
-
-      chartSecondary.data.labels = [];
-      chartSecondary.data.datasets.forEach(ds => ds.data = []);
-      chartSecondary.update();
-
-      // UI 초기화
-      document.getElementById('valPower').textContent = "0.0";
-      document.getElementById('valApparent').textContent = "0.0";
-      document.getElementById('valCurrent').textContent = "0.00";
-      document.getElementById('valVoltage').textContent = "220.0";
-      document.getElementById('valPf').textContent = "1.000";
-      document.getElementById('valReactive').textContent = "0.0";
-      document.getElementById('valTime').textContent = "T+00s";
-      document.getElementById('valMaxPower').textContent = "0.0 W";
-      document.getElementById('badgeStatus').className = "badge-status status-normal";
-      document.getElementById('badgeStatus').textContent = "대기 중";
-      document.getElementById('cardPower').className = "stat-card";
-      document.getElementById('btnPause').disabled = true;
-      document.getElementById('btnPause').textContent = "일시정지";
-
-      Object.keys(DEVICE_PROFILES).forEach(dev => {
-        document.getElementById(`chip_${dev}`).className = "app-chip";
-        document.getElementById(`state_${dev}`).textContent = "대기";
-      });
-
-      document.getElementById('eventTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">시뮬레이션을 시작하면 실시간 이벤트가 기록됩니다.</td></tr>';
-      document.getElementById('timelineNotice').innerHTML = '[초기화 완료] 상단의 <strong>[10초 피크 시연 시작 (3,000W+)]</strong> 버튼을 누르면 새로운 시연이 시작됩니다.';
-    }
-
-    function changeSpeed(val) {
-      intervalMs = parseInt(val, 10);
-      if (timerId && !isPaused) {
-        clearInterval(timerId);
-        timerId = setInterval(tick, intervalMs);
-      }
-    }
-
-    // 초기 서버 연결 상태 감지
-    checkServerConnection();
-
-    function addEventRow(sec, type, device, power, desc) {
-      const tbody = document.getElementById('eventTableBody');
-      if (tbody.children.length === 1 && tbody.children[0].innerText.includes('시뮬레이션을 시작하면')) {
-        tbody.innerHTML = '';
-      }
-
-      let badgeClass = 'status-normal';
-      if (type.includes('피크')) badgeClass = 'status-peak';
-      else if (type.includes('켜짐')) badgeClass = 'status-running';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>T+${String(sec).padStart(2, '0')}s</strong></td>
-        <td><span class="badge-status ${badgeClass}">${type}</span></td>
-        <td><strong>${device}</strong></td>
-        <td style="color:#38bdf8; font-weight:600;">${power}</td>
-        <td style="color:#cbd5e1;">${desc}</td>
-      `;
-      tbody.insertBefore(tr, tbody.firstChild);
-    }
-
-    function downloadCsv() {
-      if (historyData.times.length === 0) {
-        alert("내보낼 시뮬레이션 데이터가 없습니다. 먼저 시뮬레이션을 실행해 주세요.");
-        return;
-      }
-
-      const headers = ["t_sec", "active_power", "reactive_power", "apparent_power", "power_factor", "voltage", "current", "active_devices"];
-      let csvContent = "\uFEFF" + headers.join(",") + "\r\n";
-
-      for (let i = 0; i < historyData.times.length; i++) {
-        const row = [
-          historyData.times[i],
-          historyData.activeP[i],
-          historyData.reactiveP[i],
-          historyData.apparentP[i],
-          historyData.pfs[i],
-          historyData.voltages[i],
-          historyData.currents[i],
-          `"${historyData.activeLabels[i].replace(/"/g, '""')}"`
-        ];
-        csvContent += row.join(",") + "\r\n";
-      }
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "");
-      a.href = url;
-      a.download = `nilm_live_sim_${historyData.times.length}s_${timestamp}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  </script>
+  <!-- // 실시간 모니터링 영역 끝 -->
+
+  <script src="assets/panels.js"></script>
+  <script src="assets/state.js"></script>
+  <script src="assets/powerflow.js"></script>
+  <script src="assets/households.js"></script>
+  <script src="assets/devices.js"></script>
+  <script src="assets/charts.js"></script>
+  <script src="assets/physics.js"></script>
+  <script src="assets/realtime.js"></script>
+  <script src="assets/server_stream.js"></script>
+  <script src="assets/controls.js"></script>
+  <script src="assets/events.js"></script>
+  <script src="assets/e2e.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,19 @@
+apiVersion: 1
+datasources:
+  - name: NILM Daily Reports
+    uid: nilm-reporting-postgres
+    type: postgres
+    access: proxy
+    url: $GRAFANA_REPORTING_DB_HOST
+    user: $GRAFANA_REPORTING_DB_USER
+    editable: false
+    jsonData:
+      database: $GRAFANA_REPORTING_DB_NAME
+      sslmode: $GRAFANA_REPORTING_DB_SSLMODE
+      postgresVersion: 1600
+      timescaledb: false
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+    secureJsonData:
+      password: $GRAFANA_REPORTING_DB_PASSWORD

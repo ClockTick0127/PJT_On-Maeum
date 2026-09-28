@@ -1,0 +1,392 @@
+[
+  {
+    "appliance": "kettle",
+    "rows": 592,
+    "ready": 338,
+    "max_score_difference_vs_h200": 0.008242905139923096,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2490671,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2490791,
+        "state": "ON"
+      },
+      {
+        "source_index": 2490829,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-kettle-008b808cf17505534886",
+      "checkpoint_sha256": "df8fcc82c58310d29b2360df233a9c53db1b340972659202bf423ede8cf1d267",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 592,
+      "ready_scores": 338,
+      "elapsed_seconds": 0.7308987999567762,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  },
+  {
+    "appliance": "induction",
+    "rows": 585,
+    "ready": 331,
+    "max_score_difference_vs_h200": 0.0014494061470031738,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 93,
+      "fp": 0,
+      "fn": 0,
+      "tn": 238,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 93,
+      "fp": 0,
+      "fn": 0,
+      "tn": 238,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2312376,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312407,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2312436,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312467,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2312496,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312527,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-induction-1577c4d7da20156f6e36",
+      "checkpoint_sha256": "261bc7dc0ab957f07d28d9b1b4ae84443029eac94a841ee467b6870c1fa5a5dd",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 585,
+      "ready_scores": 331,
+      "elapsed_seconds": 0.8121433999622241,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  },
+  {
+    "appliance": "iron",
+    "rows": 591,
+    "ready": 337,
+    "max_score_difference_vs_h200": 0.0012079179286956787,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 37,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 37,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1234528,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1234648,
+        "state": "ON"
+      },
+      {
+        "source_index": 1234685,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-iron-0f1d8112a807d2a86d67",
+      "checkpoint_sha256": "52977f8e370b9affe4961bdb84a49579737f707c14424baceb892e366380a0d1",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 591,
+      "ready_scores": 337,
+      "elapsed_seconds": 0.9194549999665469,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  },
+  {
+    "appliance": "microwave",
+    "rows": 825,
+    "ready": 571,
+    "max_score_difference_vs_h200": 0.013307571411132812,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 266,
+      "fp": 1,
+      "fn": 5,
+      "tn": 299,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 266,
+      "fp": 1,
+      "fn": 5,
+      "tn": 299,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1198439,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1198564,
+        "state": "ON"
+      },
+      {
+        "source_index": 1198831,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-microwave-53633b5dea8344e55814",
+      "checkpoint_sha256": "01778b837f3b7a3a3ba5e14c4aab7e81f296f72700a00f1190203362a6be2667",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 825,
+      "ready_scores": 571,
+      "elapsed_seconds": 1.1249324000673369,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  },
+  {
+    "appliance": "hair_dryer",
+    "rows": 761,
+    "ready": 507,
+    "max_score_difference_vs_h200": 0.0037301182746887207,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1507865,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1507985,
+        "state": "ON"
+      },
+      {
+        "source_index": 1508192,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-hair_dryer-08a106027f7736638901",
+      "checkpoint_sha256": "7ec1ad9f01662b77d3242ed34f8dae806f0a214ca554cf7c829ac27b7c311213",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 761,
+      "ready_scores": 507,
+      "elapsed_seconds": 1.0096823999192566,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "rows": 613,
+    "ready": 359,
+    "max_score_difference_vs_h200": 0.008310377597808838,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 59,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 59,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2880740,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2880860,
+        "state": "ON"
+      },
+      {
+        "source_index": 2880919,
+        "state": "OFF"
+      }
+    ],
+    "runtime_state_parity": true,
+    "fresh_process_repeat_exact": true,
+    "runtime": {
+      "profile_id": "r2-scene-vacuum_cleaner-880306504b9ffcb129bc",
+      "checkpoint_sha256": "439f4b7e7edfd78b189839d01550223362ada04446c2a94bbac7df27bb7c6fad",
+      "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+      "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+      "torch_version": "2.11.0+cpu",
+      "device": "cpu",
+      "dtype": "float32",
+      "batch_size": 1,
+      "input_shape": [
+        1,
+        255,
+        4
+      ],
+      "reference_device": "NVIDIA H200 NVL",
+      "reference_dtype": "BF16",
+      "reference_parity_verified": false,
+      "source_rows": 613,
+      "ready_scores": 359,
+      "elapsed_seconds": 3.2973300999728963,
+      "model_forward_executed": true,
+      "reference_scores_read": false,
+      "backend_started": false
+    }
+  }
+]

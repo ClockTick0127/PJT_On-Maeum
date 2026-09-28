@@ -1,0 +1,3 @@
+confluent-kafka>=2.5
+pyarrow>=17
+hdfs>=2.7

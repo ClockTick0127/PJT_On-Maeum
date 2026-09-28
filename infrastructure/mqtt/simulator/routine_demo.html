@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가전 사용 누락 비교 시연</title>
+  <link rel="stylesheet" href="assets/routine_demo.css">
+</head>
+
+<body>
+  <main class="demo-shell">
+    <header class="demo-header">
+      <a class="back-link" href="./" aria-label="실시간 시뮬레이터로 돌아가기">← 실시간 시뮬레이터</a>
+      <div class="header-copy">
+        <h1>평소 쓰던 전자레인지를 오늘은 사용하지 않은 상황을 비교합니다</h1>
+        <p class="lead">평소에는 전자레인지를 약 1분 사용합니다. 오늘은 사용하지 않아 대기전력만 흐릅니다. 위는 평소 사용 파형을 실행 시각에 맞춰 재생하고, 아래는 H001의 금일
+          측정값을 MQTT로 발행하며 그립니다.</p>
+      </div>
+    </header>
+
+    <section class="stage" aria-labelledby="stage-title">
+      <div class="stage-heading">
+        <div>
+          <p class="section-kicker">WAVEFORM COMPARISON</p>
+          <h2 id="stage-title">평소 사용과 오늘 미사용 전력 비교</h2>
+        </div>
+        <div class="view-controls">
+          <label for="viewWindowSelect">표시 범위</label>
+          <select id="viewWindowSelect" aria-label="두 그래프의 공통 시간 범위">
+            <option value="120" selected>2분 확대</option>
+            <option value="329">전체 구간</option>
+          </select>
+          <span id="viewRangeLabel" aria-live="polite">현재 시각 기준</span>
+        </div>
+      </div>
+
+      <div class="chart-stack">
+        <article class="wave-card wave-card-normal">
+          <div class="wave-card-head">
+            <div class="scenario-number">01</div>
+            <div>
+              <div class="title-row">
+                <h3>평소 생활 패턴</h3>
+                <span id="normalBadge" class="status-badge status-normal">대기전력</span>
+                <span class="source-tag">기록 재생</span>
+              </div>
+              <p id="normalDescription">실행 시각에 맞춰 평소 사용 파형을 표시합니다.</p>
+            </div>
+            <div class="live-metric">
+              <span>가상 시각 <b id="demoClock">--:--:--</b></span>
+              <strong id="normalPower">—</strong><em>W</em>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="normalChart" role="img" aria-label="평소 전자레인지를 약 1분 사용하고 끄는 정상 전력 파형"></canvas>
+          </div>
+          <div class="chart-caption">
+            <span><i class="legend-line legend-normal"></i>평소 전력 (재생)</span>
+            <span><i class="legend-area"></i><span id="normalUseLegend">평소 사용 구간 (약 1분)</span></span>
+            <span><i class="legend-marker"></i><span id="normalDeadlineLegend">평소 사용 마감 시각</span></span>
+            <strong>정상 사용</strong>
+          </div>
+          <div class="card-controls">
+            <div class="controls">
+              <button id="playButton" class="play-button" type="button">▶ 재생</button>
+              <button id="resetButton" class="reset-button" type="button">↺ 처음부터</button>
+              <label class="speed-control">재생 속도
+                <select id="speedSelect" aria-label="기록 재생 속도">
+                  <option value="1" selected>1×</option>
+                  <option value="5">5×</option>
+                  <option value="10">10×</option>
+                </select>
+              </label>
+            </div>
+            <div class="scrubber-wrap">
+              <input id="demoScrubber" type="range" min="0" max="329" value="0" aria-label="기록 재생 위치">
+              <div class="time-labels"><span id="rangeStartLabel">--:--:--</span><span id="rangeEndLabel">--:--:--</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="wave-card wave-card-anomaly" id="liveCard" data-state="idle">
+          <div class="wave-card-head">
+            <div class="scenario-number">02</div>
+            <div>
+              <div class="title-row">
+                <h3>금일 패턴</h3>
+                <span id="liveBadge" class="status-badge status-waiting">실행 전</span>
+                <span class="source-tag source-tag-live"><i class="live-dot"></i>실시간 · MQTT 발행</span>
+              </div>
+              <p id="liveDescription">현재 시각부터 H001의 측정값 330개를 발행합니다.</p>
+            </div>
+            <div class="live-metric">
+              <span>가상 시각 <b id="liveClock">--:--:--</b></span>
+              <span>전자레인지 <b id="liveUsage">미사용</b></span>
+              <strong id="livePower">—</strong><em>W</em>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="anomalyChart" role="img"
+              aria-label="평소 사용 구간을 음영으로 표시하고, 금일에는 대기전력만 유지되는 실시간 발행 전력 파형"></canvas>
+          </div>
+          <div class="chart-caption">
+            <span><i class="legend-line legend-anomaly"></i>금일 전력 (발행값)</span>
+            <span><i class="legend-area"></i><span id="liveUseLegend">평소 사용 구간 (약 1분)</span></span>
+            <span><i class="legend-marker"></i>분석 입력 299개 충족 지점</span>
+            <strong id="liveProgress">발행 0 / 330</strong>
+          </div>
+          <div class="card-controls">
+            <div class="controls">
+              <button id="liveStartButton" class="play-button" type="button">▶ 실시간 실행</button>
+              <button id="liveStopButton" class="reset-button" type="button" disabled>■ 중지</button>
+              <label class="speed-control">발행 속도
+                <select id="liveSpeedSelect" aria-label="실시간 발행 속도">
+                  <option value="1" selected>1× (1초 간격)</option>
+                  <option value="5">5×</option>
+                  <option value="10">10×</option>
+                </select>
+              </label>
+            </div>
+            <p id="liveMessage" class="live-message" aria-live="polite">실행하면 H001의 미사용 전력 패턴을 현재 시각부터 MQTT로 발행하고, 브리지가 Kafka로
+              전달합니다.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="explanation" aria-live="polite">
+      <div id="storyIndex" class="story-index">01 / 03</div>
+      <div>
+        <p id="storyEyebrow">대기전력 관찰</p>
+        <h2 id="storyTitle">평소 사용 전에는 대기전력만 흐릅니다.</h2>
+        <p id="storyBody">공유기·셋톱박스 등의 대기전력에 냉장고 전력이 더해져 기저부하가 유지됩니다.</p>
+      </div>
+      <div class="status-orbit" aria-hidden="true"><span></span><i></i></div>
+    </section>
+
+    <footer class="demo-footer">
+      <p>위 그래프는 평소 전자레인지 사용(약 1분)을 실행 시각에 맞춰 보여 주는 발표용 재생이며 데이터를 발행하지 않습니다. 아래 그래프는 시뮬레이터가 실제로 발행한 대기전력입니다. 루틴
+        누락(ROUTINE_MISSED) 판정은 저장된 H001 루틴 기준 시각인 08:10 KST를 따릅니다.</p>
+      <span>평소 기록 ↔ 오늘 미사용 (실시간)</span>
+    </footer>
+  </main>
+  <script src="assets/routine_demo.js"></script>
+</body>
+
+</html>

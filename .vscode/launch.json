@@ -1,0 +1,42 @@
+{
+  // 비밀값은 여기 두지 않는다. 저장소에 평문으로 남고 SonarQube가 하드코딩 크리덴셜로 잡는다.
+  // POSTGRES_PASSWORD, NILM_BACKEND_CLIENT_SECRET 등은 envFile에서 읽는다.
+  // infrastructure/local/.env 는 gitignore 대상이며 Setup-Local.ps1이 만든다.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "iot-device-service (8083)",
+      "request": "launch",
+      "mainClass": "com.nilm.device.IotDeviceServiceApplication",
+      "projectName": "iot-device-service",
+      "envFile": "${workspaceFolder}/infrastructure/local/.env",
+      "env": {
+        // 기본 8081은 팀 Spark Master UI가 점유하므로 8083으로 띄운다.
+        "SERVER_PORT": "8083",
+        "POSTGRES_URL": "jdbc:postgresql://localhost:5432/device_db",
+        "KEYCLOAK_SERVER_URL": "http://localhost:8090",
+        "JWT_ISSUER_URI": "http://localhost:8090/realms/nilm",
+        "APP_SECURITY_ENABLED": "true",
+        // Kafka 없이 띄울 때 릴레이가 재시도 로그로 화면을 채우지 않게 한다.
+        "MANAGER_REGISTRATION_PUBLISHER_ENABLED": "false"
+      }
+    },
+    {
+      "type": "java",
+      "name": "api-gateway (8080)",
+      "request": "launch",
+      "mainClass": "com.nilm.gateway.ApiGatewayApplication",
+      "projectName": "api-gateway",
+      "envFile": "${workspaceFolder}/infrastructure/local/.env",
+      "env": {
+        "SERVER_PORT": "8080",
+        "IOT_DEVICE_SERVICE_URL": "http://localhost:8083",
+        "MONITORING_SERVICE_URL": "http://localhost:8082",
+        "APP_SECURITY_ENABLED": "true",
+        "JWT_ISSUER_URI": "http://localhost:8090/realms/nilm",
+        "CORS_ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:3000"
+      }
+    }
+  ]
+}

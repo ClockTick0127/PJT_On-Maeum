@@ -1,11 +1,14 @@
 # Jenkins 설정 및 검증
 
+> 2026-09-09 변경: 운영 이미지 경로와 파라미터는 [Docker Hub 단일 Private 실행 가이드](DockerHub_단일_Private_실행_가이드.md)를 기준으로 한다. 아래의 REGISTRY/IMAGE_TAG 기반 배포 설명은 이전 구조이며, 현재는 IMAGE_REPOSITORY와 서비스별 digest manifest를 사용한다. ci Agent에도 Python 3.9 이상이 필요하다.
+
 ## 구현된 구성
 
 - 독립된 local/ec2-a/ec2-b Compose.
 - Backend 3개, Frontend/Nginx, Python Bridge Dockerfile.
 - Backend의 테스트와 bootJar, Frontend lint/build, Bridge 전달·TLS 단위 테스트.
 - Keycloak nilm realm/client 최초 import, Kafka 토픽 초기화.
+- EC2-A 기본 Compose의 Prometheus·Grafana·Blackbox Exporter와 EC2-B node-exporter.
 - Bridge TLS, 초기 연결 재시도, SIGTERM 처리, Kafka ACK 이후 MQTT ACK.
 - 서버 배치 스크립트 및 HTTP 인증·MQTT→Kafka smoke 검증.
 
@@ -34,15 +37,15 @@ Controller의 자체 executor는 0, 배포 Agent는 각 1개로 설정한다. fe
 | ec2-b-runtime-env | Secret file | infrastructure/ec2-b/.env.example 기반 실제 값 |
 | frontend-build-env | Secret file, 선택 | 필요한 공개 Vite 빌드 변수 |
 
-공통 DB 사용자/비밀번호는 A와 B에서 일치해야 한다. MQTT_USER/MQTT_PASS는 A의 운영 passwd 파일에 있는 계정과 일치해야 한다. 인증서의 SAN에는 B Bridge가 사용하는 MQTT_HOST가 포함되어야 한다.
+공통 DB 사용자/비밀번호는 A와 B에서 일치해야 한다. MQTT_USER/MQTT_PASS는 A의 운영 passwd 파일에 있는 계정과 일치해야 한다. 인증서의 SAN에는 B Bridge가 사용하는 MQTT_HOST가 포함되어야 한다. `ec2-a-runtime-env`에는 `EC2_B_PRIVATE_IP`와 강한 `GRAFANA_ADMIN_PASSWORD`를 추가한다.
 
 Jenkins 파라미터:
 
 - `REGISTRY`: 예를 들어 `registry.example.com/team/nilm`. 스킴 없이 Registry와 namespace를 지정한다.
 - `FRONTEND_ENV_CREDENTIAL`: 필요하면 `frontend-build-env`, 현재 프론트에는 비워도 된다.
-- `ENABLE_CD`: 기본 false. 최초 EC2·인증서·Credentials 준비 후 master에서 활성화한다.
+- `ENABLE_CD`: 기본 true. master 푸시로 시작된 자동 빌드는 항상 배포하며, 수동 Build with Parameters에서 해제하면 CI만 수행한다.
 
-모든 브랜치는 CI를 수행한다. master이면서 ENABLE_CD=true인 경우에만 Registry 업로드와 운영 배포를 수행한다. IMAGE_TAG는 전체 커밋 SHA이며 Jenkins가 env 파일에 기록한다.
+모든 브랜치는 CI를 수행한다. master 자동 빌드와 ENABLE_CD=true인 master 수동 빌드에서만 Registry 업로드와 운영 배포를 수행한다. IMAGE_TAG는 전체 커밋 SHA이며 Jenkins가 env 파일에 기록한다.
 
 ## EC2 최초 준비
 
@@ -75,11 +78,12 @@ EC2-B:
 
 1. CI: Compose config 검사, 이미지 빌드 및 테스트.
 2. master CD: 이미지 push.
-3. A/B 설정 준비: Compose·env·SQL·realm·프록시 설정 복사, 인증서 파일 확인.
+3. A/B 설정 준비: Compose·env·SQL·realm·프록시·observability 설정 복사, 인증서 파일 확인.
 4. B 기반 서비스: PostgreSQL/Kafka readiness 확인, 토픽 생성.
-5. A: Redis/Mosquitto/Keycloak, 이후 Backend/Frontend 실행.
+5. A: Redis/Mosquitto/Keycloak, 이후 Backend/Frontend와 Prometheus/Grafana/Blackbox Exporter 실행.
 6. HTTP 검증: 프론트 응답, 미인증 요청 401, client_credentials 토큰 발급, Gateway→두 Backend 요청.
-7. B Bridge: health 확인, 고유 테스트 레코드의 MQTT→Kafka 전달 확인.
+7. B 실시간 분석: 이미 받은 이미지로 분석 서비스 실행.
+8. B Bridge: health 확인, 고유 테스트 레코드의 MQTT→Kafka 전달 확인.
 
 별도 서버의 의존성은 Jenkins 단계로 처리한다. 운영 A Compose에 B의 postgres를 depends_on으로 넣지 않는다.
 

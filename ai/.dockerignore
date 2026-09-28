@@ -1,0 +1,15 @@
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/*.egg-info
+**/.env
+**/*.env
+evidence
+contracts
+tools
+assets/nilm_r3/fixtures/**/evaluation_only
+assets/nilm_r3/fixtures/**/controls
+assets/nilm_r3/fixtures/**/source_*
+assets/nilm_r3/profiles
+assets/nilm_r3/source_snapshot/r2_reference
+assets/nilm_r3/source_snapshot/m1/models.py

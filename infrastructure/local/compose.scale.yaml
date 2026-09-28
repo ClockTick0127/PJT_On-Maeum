@@ -1,0 +1,15 @@
+# Optional override for repeatable local multi-consumer tests.
+# ANALYSIS_REPLICAS can be overridden by --scale on the command line.
+services:
+  realtime-analysis-service:
+    deploy:
+      replicas: ${ANALYSIS_REPLICAS:-2}
+    environment:
+      # Compose replica names are not stable across recreation. Keep static
+      # membership disabled and rely on cooperative-sticky assignment locally.
+      KAFKA_GROUP_INSTANCE_ID: ""
+      KAFKA_OUTING_GROUP_INSTANCE_ID: ""
+
+  aggregation-service:
+    deploy:
+      replicas: 1

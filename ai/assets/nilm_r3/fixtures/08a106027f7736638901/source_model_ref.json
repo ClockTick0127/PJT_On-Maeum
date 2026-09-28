@@ -1,0 +1,15 @@
+{
+  "checkpoint": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/runs/TCN_4_s20260918_lr0.0003/checkpoint_512.pt",
+  "checkpoint_sha256": "7ec1ad9f01662b77d3242ed34f8dae806f0a214ca554cf7c829ac27b7c311213",
+  "model_code": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/models.py",
+  "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+  "normalization": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/normalization.json",
+  "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+  "feature_order": [
+    "active_power",
+    "reactive_power",
+    "power_factor",
+    "current"
+  ],
+  "family": "TCN"
+}

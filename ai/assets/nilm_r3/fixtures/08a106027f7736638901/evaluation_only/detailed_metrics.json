@@ -1,0 +1,690 @@
+{
+  "cold_1": {
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "raw_ap": 1.0,
+    "score_distribution": {
+      "0": {
+        "n": 300,
+        "quantiles": [
+          0.0024726230185478926,
+          0.002889581024646759,
+          0.004905405919998884,
+          0.2458091676235199,
+          0.8906734436750412,
+          0.9019206762313843,
+          0.937210738658905
+        ]
+      },
+      "1": {
+        "n": 207,
+        "quantiles": [
+          0.9399133324623108,
+          0.961533784866333,
+          0.9871788024902344,
+          0.9926542043685913,
+          0.9942697286605835,
+          0.9949396848678589,
+          0.9952448010444641
+        ]
+      }
+    },
+    "known_on": 207,
+    "known_off": 300,
+    "truth_unknown": 0,
+    "score_coverage": 1.0,
+    "confirmed_coverage": 1.0,
+    "fp_spans": [],
+    "fn_spans": [],
+    "unknown_spans": [],
+    "fp_evidence": {
+      "HIGH": 0,
+      "MID": 0,
+      "LOW": 0
+    },
+    "non_sync_transitions": [
+      {
+        "source_index": 1507985,
+        "state": 1,
+        "earliest_emission_index": 1507986
+      },
+      {
+        "source_index": 1508192,
+        "state": 0,
+        "earliest_emission_index": 1508193
+      }
+    ],
+    "sync_transitions": [],
+    "transition_matching": {
+      "0": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      },
+      "1": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      }
+    },
+    "timing_definition": "Decision-bin matching to research edge; earliest availability is end of that original one-second bin. Host processing timestamps are in trace.jsonl; no real-network latency claim."
+  },
+  "cold_2": {
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "raw_ap": 1.0,
+    "score_distribution": {
+      "0": {
+        "n": 300,
+        "quantiles": [
+          0.0024726230185478926,
+          0.002889581024646759,
+          0.004905405919998884,
+          0.2458091676235199,
+          0.8906734436750412,
+          0.9019206762313843,
+          0.937210738658905
+        ]
+      },
+      "1": {
+        "n": 207,
+        "quantiles": [
+          0.9399133324623108,
+          0.961533784866333,
+          0.9871788024902344,
+          0.9926542043685913,
+          0.9942697286605835,
+          0.9949396848678589,
+          0.9952448010444641
+        ]
+      }
+    },
+    "known_on": 207,
+    "known_off": 300,
+    "truth_unknown": 0,
+    "score_coverage": 1.0,
+    "confirmed_coverage": 1.0,
+    "fp_spans": [],
+    "fn_spans": [],
+    "unknown_spans": [],
+    "fp_evidence": {
+      "HIGH": 0,
+      "MID": 0,
+      "LOW": 0
+    },
+    "non_sync_transitions": [
+      {
+        "source_index": 1507985,
+        "state": 1,
+        "earliest_emission_index": 1507986
+      },
+      {
+        "source_index": 1508192,
+        "state": 0,
+        "earliest_emission_index": 1508193
+      }
+    ],
+    "sync_transitions": [],
+    "transition_matching": {
+      "0": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      },
+      "1": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      }
+    },
+    "timing_definition": "Decision-bin matching to research edge; earliest availability is end of that original one-second bin. Host processing timestamps are in trace.jsonl; no real-network latency claim."
+  },
+  "long_prefix": {
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 900,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "raw_ap": 1.0,
+    "score_distribution": {
+      "0": {
+        "n": 900,
+        "quantiles": [
+          0.0012843081494793296,
+          0.0024688284029252827,
+          0.008315778337419033,
+          0.024053551256656647,
+          0.10448412597179413,
+          0.896251380443573,
+          0.937210738658905
+        ]
+      },
+      "1": {
+        "n": 207,
+        "quantiles": [
+          0.9399133324623108,
+          0.961533784866333,
+          0.9871788024902344,
+          0.9926542043685913,
+          0.9942697286605835,
+          0.9949396848678589,
+          0.9952448010444641
+        ]
+      }
+    },
+    "known_on": 207,
+    "known_off": 900,
+    "truth_unknown": 0,
+    "score_coverage": 1.0,
+    "confirmed_coverage": 1.0,
+    "fp_spans": [],
+    "fn_spans": [],
+    "unknown_spans": [],
+    "fp_evidence": {
+      "HIGH": 0,
+      "MID": 0,
+      "LOW": 0
+    },
+    "non_sync_transitions": [
+      {
+        "source_index": 1507985,
+        "state": 1,
+        "earliest_emission_index": 1507986
+      },
+      {
+        "source_index": 1508192,
+        "state": 0,
+        "earliest_emission_index": 1508193
+      }
+    ],
+    "sync_transitions": [],
+    "transition_matching": {
+      "0": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1508192,
+              "decision_bin_index": 1508192,
+              "earliest_bin_end_index": 1508193,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      },
+      "1": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 1507985,
+              "decision_bin_index": 1507985,
+              "earliest_bin_end_index": 1507986,
+              "delay_seconds": 1
+            }
+          ]
+        }
+      }
+    },
+    "timing_definition": "Decision-bin matching to research edge; earliest availability is end of that original one-second bin. Host processing timestamps are in trace.jsonl; no real-network latency claim."
+  },
+  "off_control": {
+    "counts": {
+      "tp": 0,
+      "fp": 14,
+      "fn": 0,
+      "tn": 586,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "raw_ap": null,
+    "score_distribution": {
+      "0": {
+        "n": 600,
+        "quantiles": [
+          0.08882029354572296,
+          0.09534945338964462,
+          0.10521054267883301,
+          0.12896393239498138,
+          0.16451646387577057,
+          0.9232554018497465,
+          0.9609517455101013
+        ]
+      },
+      "1": {
+        "n": 0,
+        "quantiles": null
+      }
+    },
+    "known_on": 0,
+    "known_off": 600,
+    "truth_unknown": 0,
+    "score_coverage": 1.0,
+    "confirmed_coverage": 1.0,
+    "fp_spans": [
+      {
+        "start_index": 79740,
+        "end_exclusive": 79754,
+        "seconds": 14,
+        "left_censored": false,
+        "right_censored": true
+      }
+    ],
+    "fn_spans": [],
+    "unknown_spans": [],
+    "fp_evidence": {
+      "HIGH": 14,
+      "MID": 0,
+      "LOW": 0
+    },
+    "non_sync_transitions": [
+      {
+        "source_index": 79740,
+        "state": 1,
+        "earliest_emission_index": 79741
+      }
+    ],
+    "sync_transitions": [],
+    "transition_matching": {
+      "0": {
+        "1": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 0,
+          "pairs": []
+        },
+        "3": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 0,
+          "pairs": []
+        },
+        "5": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 0,
+          "pairs": []
+        }
+      },
+      "1": {
+        "1": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 1,
+          "pairs": []
+        },
+        "3": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 1,
+          "pairs": []
+        },
+        "5": {
+          "matched": 0,
+          "truth_edges": 0,
+          "predicted_edges": 1,
+          "pairs": []
+        }
+      }
+    },
+    "timing_definition": "Decision-bin matching to research edge; earliest availability is end of that original one-second bin. Host processing timestamps are in trace.jsonl; no real-network latency claim."
+  },
+  "other_day": {
+    "counts": {
+      "tp": 150,
+      "fp": 89,
+      "fn": 1,
+      "tn": 211,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "raw_ap": 0.8804542531042461,
+    "score_distribution": {
+      "0": {
+        "n": 300,
+        "quantiles": [
+          0.7264255881309509,
+          0.8233283758163452,
+          0.8577680587768555,
+          0.8774768114089966,
+          0.929440438747406,
+          0.9626730680465698,
+          0.9752018451690674
+        ]
+      },
+      "1": {
+        "n": 151,
+        "quantiles": [
+          0.9111796617507935,
+          0.957595020532608,
+          0.9621075391769409,
+          0.9653811454772949,
+          0.9683812260627747,
+          0.9728307723999023,
+          0.9759464263916016
+        ]
+      }
+    },
+    "known_on": 151,
+    "known_off": 300,
+    "truth_unknown": 0,
+    "score_coverage": 1.0,
+    "confirmed_coverage": 1.0,
+    "fp_spans": [
+      {
+        "start_index": 52300,
+        "end_exclusive": 52389,
+        "seconds": 89,
+        "left_censored": false,
+        "right_censored": false
+      }
+    ],
+    "fn_spans": [
+      {
+        "start_index": 52149,
+        "end_exclusive": 52150,
+        "seconds": 1,
+        "left_censored": false,
+        "right_censored": false
+      }
+    ],
+    "unknown_spans": [],
+    "fp_evidence": {
+      "HIGH": 43,
+      "MID": 46,
+      "LOW": 0
+    },
+    "non_sync_transitions": [
+      {
+        "source_index": 52150,
+        "state": 1,
+        "earliest_emission_index": 52151
+      },
+      {
+        "source_index": 52389,
+        "state": 0,
+        "earliest_emission_index": 52390
+      }
+    ],
+    "sync_transitions": [],
+    "transition_matching": {
+      "0": {
+        "1": {
+          "matched": 0,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": []
+        },
+        "3": {
+          "matched": 0,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": []
+        },
+        "5": {
+          "matched": 0,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": []
+        }
+      },
+      "1": {
+        "1": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 52149,
+              "decision_bin_index": 52150,
+              "earliest_bin_end_index": 52151,
+              "delay_seconds": 2
+            }
+          ]
+        },
+        "3": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 52149,
+              "decision_bin_index": 52150,
+              "earliest_bin_end_index": 52151,
+              "delay_seconds": 2
+            }
+          ]
+        },
+        "5": {
+          "matched": 1,
+          "truth_edges": 1,
+          "predicted_edges": 1,
+          "pairs": [
+            {
+              "truth_index": 52149,
+              "decision_bin_index": 52150,
+              "earliest_bin_end_index": 52151,
+              "delay_seconds": 2
+            }
+          ]
+        }
+      }
+    },
+    "timing_definition": "Decision-bin matching to research edge; earliest availability is end of that original one-second bin. Host processing timestamps are in trace.jsonl; no real-network latency claim."
+  }
+}

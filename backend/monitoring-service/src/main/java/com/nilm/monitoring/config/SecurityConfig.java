@@ -40,6 +40,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/reports/demo/{householdId}").permitAll()
                         .requestMatchers(
                                 "/actuator/health/**",
                                 "/actuator/info",

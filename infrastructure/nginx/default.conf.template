@@ -19,6 +19,22 @@ server {
         proxy_buffering off;
         proxy_read_timeout 3600s;
     }
+    # 시연용 시뮬레이터(--profile simulator). 제어 API에 인증이 없으므로 기본 인증으로 막는다.
+    # 컨테이너가 꺼져 있어도 nginx가 기동되도록 변수와 Docker DNS로 요청 시점에 해석한다(꺼져 있으면 502).
+    location = /simulator { return 301 /simulator/; }
+    location /simulator/ {
+        auth_basic "NILM simulator";
+        auth_basic_user_file /etc/nginx/auth/simulator.htpasswd;
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $simulator_upstream simulator:8085;
+        rewrite ^/simulator/(.*)$ /$1 break;
+        proxy_pass http://$simulator_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+        proxy_read_timeout 3600s;
+    }
     location / { try_files $uri $uri/ /index.html; }
 }
 server {

@@ -1,0 +1,15 @@
+{
+  "checkpoint": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/runs/Transformer_5_s20260917_lr0.001/checkpoint_512.pt",
+  "checkpoint_sha256": "439f4b7e7edfd78b189839d01550223362ada04446c2a94bbac7df27bb7c6fad",
+  "model_code": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/models.py",
+  "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+  "normalization": "/home/j-j15d201/nilm/maintenance/followup_v22_m1_20260917/normalization.json",
+  "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+  "feature_order": [
+    "active_power",
+    "reactive_power",
+    "power_factor",
+    "current"
+  ],
+  "family": "Transformer"
+}

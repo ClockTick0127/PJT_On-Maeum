@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${report.household_id} · 생활 통계 보고서|">생활 통계 보고서</title>
+    <style>
+        :root { color-scheme: light; font-family: system-ui, -apple-system, sans-serif; color: #332b26; background: #fff8f3; }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        main { max-width: 1120px; margin: auto; padding: 40px 24px 64px; }
+        header { margin-bottom: 28px; }
+        .badge { display: inline-block; padding: 6px 12px; border-radius: 20px; background: #fb7f26; color: #332b26; font-size: 13px; font-weight: 700; }
+        h1 { font-size: clamp(26px, 4vw, 36px); margin: 14px 0; letter-spacing: -1px; }
+        h2 { margin: 0 0 16px; font-size: 20px; }
+        p { line-height: 1.7; }
+        .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; color: #716257; font-size: 14px; }
+        section { background: #ffffff; border: 1px solid #f2dfd0; border-radius: 16px; padding: 24px; margin-top: 20px; }
+        .summary { border-left: 4px solid #fb7f26; }
+        .summary p:last-child { margin-bottom: 0; }
+        .hint { color: #716257; font-size: 13px; }
+        .chart { position: relative; height: 330px; }
+        .table-scroll { overflow: auto; max-height: 520px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 13px 12px; border-bottom: 1px solid #f2e8e0; text-align: left; }
+        th { position: sticky; top: 0; background: #fff1e6; white-space: nowrap; color: #714020; }
+        td { line-height: 1.6; }
+        .number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .nowrap { white-space: nowrap; }
+        .pagination { display: flex; gap: 20px; align-items: center; margin-top: 18px; font-size: 14px; }
+        .pagination a { color: #9d4200; text-decoration: none; font-weight: 700; }
+        footer { margin-top: 24px; overflow-wrap: anywhere; }
+        @media (max-width: 600px) { main { padding: 24px 14px; } section { padding: 18px; } }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <span class="badge">생활 통계 · 발표용</span>
+        <h1><span th:text="${report.household_id}">H001</span> 생활 통계 보고서</h1>
+        <div class="meta">
+            <span>보고일 <strong th:text="${report.period_end}"></strong></span>
+            <span th:text="|조회 기간 ${report.period_start} ~ ${report.period_end}|"></span>
+            <span th:text="|평가 출처 ${report.assessment_mode}|"></span>
+        </div>
+    </header>
+    <section class="summary">
+        <h2>생활 요약</h2>
+        <p th:each="row : ${summaries}" th:text="${row.statement}"></p>
+    </section>
+    <section>
+        <h2>날짜별 위험 점수</h2>
+        <p class="hint">날짜별로 기록된 최대 점수입니다. 유효 평가와 부분 평가를 구분합니다.</p>
+        <div class="chart"><canvas id="dailyScores" role="img" aria-label="날짜별 유효 평가와 부분 평가 최대 점수"></canvas></div>
+        <p id="chartError" class="hint" hidden>차트 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</p>
+    </section>
+    <section>
+        <h2>가전별 일일 사용량</h2>
+        <p class="hint">시간 단위는 분입니다. 수집되지 않은 값은 ‘—’로 표시합니다.</p>
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>날짜</th><th>가전</th><th class="number">사용 시간 (분)</th><th class="number">사용 횟수</th><th>데이터 상태</th></tr></thead>
+                <tbody><tr th:each="row : ${appliances}">
+                    <td class="nowrap" th:text="${row.usage_date}"></td>
+                    <td th:text="${row.appliance_type}"></td>
+                    <td class="number" th:text="${row.usage_minutes == null ? '—' : #numbers.formatDecimal(row.usage_minutes, 1, 1)}"></td>
+                    <td class="number" th:text="${row.usage_count == null ? '—' : row.usage_count}"></td>
+                    <td th:text="${row.usage_status}"></td>
+                </tr></tbody>
+            </table>
+        </div>
+    </section>
+    <section>
+        <h2>생활 통계 및 판단 근거</h2>
+        <p class="hint">근거는 페이지당 최대 100건씩 표시합니다.</p>
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>유형</th><th>가전</th><th>근거</th><th>품질 상태</th></tr></thead>
+                <tbody><tr th:each="row : ${evidence}">
+                    <td th:text="${row.evidence_type}"></td>
+                    <td th:text="${row.appliance_type ?: '전체'}"></td>
+                    <td th:text="${row.statement}"></td>
+                    <td th:text="${row.quality_status ?: '—'}"></td>
+                </tr></tbody>
+            </table>
+        </div>
+    </section>
+    <nav class="pagination" aria-label="근거 표 페이지">
+        <a th:if="${evidencePage > 0}" th:href="@{/reports/demo/{id}(id=${report.household_id},evidencePage=${evidencePage - 1})}">← 이전 근거</a>
+        <span th:text="|근거 ${evidencePage + 1}페이지|"></span>
+        <a th:if="${hasNextEvidence}" th:href="@{/reports/demo/{id}(id=${report.household_id},evidencePage=${evidencePage + 1})}">다음 근거 →</a>
+    </nav>
+    <footer class="hint">
+        <div th:text="|보고서 버전 ${report.report_id}|"></div>
+        <div th:text="|생성 시각 ${report.generated_at}|"></div>
+    </footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const dates = /*[[${scoreDates}]]*/ [];
+    const validScores = /*[[${validScores}]]*/ [];
+    const partialScores = /*[[${partialScores}]]*/ [];
+    if (typeof Chart === 'undefined') {
+        document.getElementById('chartError').hidden = false;
+    } else {
+        new Chart(document.getElementById('dailyScores'), {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [
+                    {label: '유효 평가 최대 점수', data: validScores, backgroundColor: '#fb7f26', borderRadius: 3},
+                    {label: '부분 평가 최대 점수', data: partialScores, backgroundColor: '#ffffff', borderColor: '#b34b00', borderWidth: 2, borderRadius: 3}
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {mode: 'index', intersect: false},
+                scales: {
+                    y: {beginAtZero: true, suggestedMax: 100, title: {display: true, text: '위험 점수'}},
+                    x: {grid: {display: false}, ticks: {maxTicksLimit: 12}}
+                },
+                plugins: {legend: {position: 'bottom'}}
+            }
+        });
+    }
+</script>
+</body>
+</html>

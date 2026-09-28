@@ -1,0 +1,35 @@
+{
+  "status": "ACTUAL_FORWARD_COMPLETE",
+  "run_id": "0f1d8112a807d2a86d67_other_day",
+  "count": 588,
+  "forward_calls": 334,
+  "signature": {
+    "model_sha256": "52977f8e370b9affe4961bdb84a49579737f707c14424baceb892e366380a0d1",
+    "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+    "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+    "panel_sha256": "664961e30406285d9e4c4d341d6cd9cf9b36a0291f5b5ca72672fa2ceb3c1378",
+    "dtype": "BF16",
+    "batch_size": 1,
+    "tf32": false,
+    "feature_order": [
+      "active_power",
+      "reactive_power",
+      "power_factor",
+      "current"
+    ],
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda:0",
+    "gpu_name": "NVIDIA H200 NVL"
+  },
+  "pid": 3340570,
+  "seconds": 0.929638147354126,
+  "truth_read": false,
+  "expected_scores_read": false,
+  "batch_size": 1,
+  "output_hashes": {
+    "live_scores.jsonl": "366ab0d2bd8cef6ab72813c76cf75006ae9f604acfd9f282af62301a2295f3cb",
+    "live_states.jsonl": "852810657d6a837be55bc25d7b7ff6c42257d7e879bf14734bd9ae654008b457",
+    "trace.jsonl": "31a46abd5a6b8e9180dd78ed8c0c71b4f621ffed1783988bf1b43741e9e69221"
+  },
+  "recommendation": "external_review_pending"
+}

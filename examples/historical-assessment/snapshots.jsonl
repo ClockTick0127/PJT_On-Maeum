@@ -1,0 +1,4 @@
+{"schema_version":1,"snapshot_id":"smoke-0","household_id":"H001","observed_at":"2026-09-20T00:00:00+09:00","published_at":"2026-09-20T00:00:00+09:00","measurement":null,"appliances":[{"appliance_type":"IRON","is_on":false}]}
+{"schema_version":1,"snapshot_id":"smoke-1","household_id":"H001","observed_at":"2026-09-20T00:00:01+09:00","published_at":"2026-09-20T00:00:01+09:00","measurement":null,"appliances":[{"appliance_type":"IRON","is_on":true}]}
+{"schema_version":1,"snapshot_id":"smoke-11","household_id":"H001","observed_at":"2026-09-20T00:00:11+09:00","published_at":"2026-09-20T00:00:11+09:00","measurement":null,"appliances":[{"appliance_type":"IRON","is_on":true}]}
+{"schema_version":1,"snapshot_id":"smoke-12","household_id":"H001","observed_at":"2026-09-20T00:00:12+09:00","published_at":"2026-09-20T00:00:12+09:00","measurement":null,"appliances":[{"appliance_type":"IRON","is_on":false}]}

@@ -1,12 +1,34 @@
 # 실행 및 배포
 
+간편 실행
+
+```
+docker compose --env-file .env --profile frontend --profile tools up -d --build --force-recreate
+```
+
+---
+
 ## 폴더별 역할
 
-- `local/compose.yaml`: 로컬 전체 서비스. PostgreSQL·Kafka의 기존 프로젝트/볼륨 이름을 보존한다.
-- `ec2-a/compose.yaml`: Backend, Keycloak, Redis, Mosquitto, Frontend/Nginx.
-- `ec2-b/compose.yaml`: PostgreSQL, Kafka, 토픽 초기화, Bridge.
+- `local/compose.yaml`: 로컬 전체 서비스. PostgreSQL·Kafka의 기존 프로젝트/볼륨 이름을 보존하고 실시간 분석 서비스를 함께 실행한다.
+- `ec2-a/compose.yaml`: Backend, Keycloak, Redis, Mosquitto, Frontend/Nginx, Prometheus, Grafana, Blackbox Exporter.
+- `ec2-b/compose.yaml`: PostgreSQL, Kafka, 토픽 초기화, 실시간 분석 서비스, 집계 서비스, Bridge, HDFS(NameNode/DataNode), 원본 적재기, node-exporter.
 - 서비스 코드와 SQL은 기존 `postgres/`, `mqtt/`, `mqtt-kafka-bridge/`, `kafka/` 및 저장소 `backend/`에 둔다.
-- HDFS는 별도 실험용으로 유지하며 `nilm-net`에 접속한다.
+- 실시간 분석 서비스 코드는 저장소 `ai/realtime-analysis-service/`에서 로컬 이미지를 빌드한다. 운영에서는 EC2-B에서 실행하며 같은 Compose의 `kafka:19092`와 `postgres`의 `analysis_db`에 연결한다.
+- HDFS와 원본 적재기(`power.raw.v1` -> HDFS Bronze)는 운영에서 EC2-B Compose로 실행한다. 적재기 코드는 저장소 `collection/bronze-loader/`에서 빌드하며 같은 Compose의 `kafka:19092`와 `namenode`에 연결한다.
+- `hdfs/docker-compose.yml`은 로컬 실험용으로 유지한다. `nilm-net`에 접속하고 적재기를 로컬 빌드한다. 로컬 `compose.yaml`에는 포함하지 않는다.
+- NameNode UI 9870은 EC2-B 사설 IP에만 바인딩한다. `dfs.permissions`가 꺼져 있으므로 보안 그룹에서 접근 대상을 제한한다. Spark 등 HDFS RPC 클라이언트를 붙일 때 9000 공개 여부를 별도로 결정한다.
+- EC2-B 기동 시 `hdfs-init`이 `/nilm` 경로를 만들고 전체 80GiB, Bronze 32GiB 등
+  데이터셋별 HDFS space quota를 멱등 적용한다. `HDFS_QUOTA_ENABLED=false`로
+  초기화를 생략할 수 있다.
+- 집계 서비스의 HDFS 보존 작업은 기본 dry-run이다. 14일 보존과 3일 유예를 지난
+  UTC `ingest_date`만 검토하며, 일일 배치 성공·신규 Bronze manifest의 업무 날짜·
+  compaction `_SUCCESS`를 모두 확인한다. 실제 삭제는 운영 검토 후
+  `RETENTION_APPLY=true`로 명시적으로 활성화한다.
+- Prometheus·Grafana·Blackbox Exporter는 EC2-A 기본 Compose와 Jenkins `a` 배포에
+  포함된다. Prometheus와 Grafana 포트는 EC2-A 루프백에만 바인딩한다.
+- `node-exporter`는 EC2-B 사설 IP의 9100 포트에만 바인딩한다. EC2-A Prometheus가
+  `ec2-b.internal:9100`을 수집하며 루트 디스크 70/80/90%와 inode 80% 경보를 평가한다.
 - [전체 구조](../docs/배포설정/로컬_EC2_Compose_Jenkins_구조.md), [Jenkins 설정](../docs/배포설정/Jenkins_실행_및_검증.md)
 
 ## 최초 로컬 설정 (Windows PowerShell)
@@ -68,7 +90,31 @@ docker compose ps
 
 ```powershell
 docker compose logs -f mqtt-kafka-bridge
+docker compose logs -f realtime-analysis-service
 ```
+
+실시간 분석 Consumer는 기본적으로 1개가 실행된다. 고정 컨테이너 이름과 호스트 포트를
+사용하지 않으므로 동일한 구성에서 replica 수만 바꿔 비교할 수 있다. 로컬 scale 테스트에서는
+`.env`의 `ANALYSIS_KAFKA_GROUP_INSTANCE_ID`와
+`ANALYSIS_KAFKA_OUTING_GROUP_INSTANCE_ID`를 비워 static membership을 끈다.
+
+```powershell
+docker compose up -d --build --scale realtime-analysis-service=1
+docker compose up -d --build --scale realtime-analysis-service=2
+docker compose up -d --build --scale realtime-analysis-service=4
+```
+
+반복 테스트에서 replica 수를 환경변수로 관리하려면 scale override를 사용한다. 이 override는
+static membership을 강제로 비활성화하고 `aggregation-service`를 1개로 유지한다.
+
+```powershell
+$env:ANALYSIS_REPLICAS = '2'
+docker compose -f compose.yaml -f compose.scale.yaml up -d --build
+docker compose -f compose.yaml -f compose.scale.yaml ps
+```
+
+분석 서비스의 HTTP 8000 포트는 Compose 네트워크에만 노출된다. 개별 replica 상태는
+`docker compose ps`와 `docker compose logs`로 확인한다.
 
 프론트는 기본적으로 `frontend` 폴더에서 `npm ci`, `npm run dev`로 실행한다. Vite의 `/api` 프록시는 `localhost:8080`을 사용한다.
 
@@ -114,6 +160,8 @@ Bridge는 MQTT QoS 1을 Kafka 전달 확인 후 ACK한다. 재전달 시 중복 
 
 ## 운영 배포
 
+현재 Jenkins는 Docker Hub Private 저장소 `leejeongmin24/on-maum` 하나의 서비스별 태그를 사용하고, 실제 배포에는 digest를 주입한다. [단일 Private 실행 가이드](../docs/배포설정/DockerHub_단일_Private_실행_가이드.md)를 먼저 따른다. `nilm-a`, `nilm-b` Compose 프로젝트 이름은 유지한다. 아래 수동 명령은 이미지 인증과 Prepare가 끝난 서버 기준이며 최초 전체 배포 순서를 대체하지 않는다.
+
 각 EC2의 `/opt/nilm`에 해당 Compose·env·설정 파일을 준비한다. Jenkins의 `prepare.sh`가 비밀 파일을 제외한 설정을 복사하고 `CONFIG_ROOT=/opt/nilm`을 기록한다.
 
 ```bash
@@ -122,12 +170,12 @@ docker compose pull
 docker compose up -d
 ```
 
-최초 배포는 Jenkins가 B 기반 서비스 → A → B Bridge 순서로 준비 상태를 확인하며 실행한다. 운영 백엔드와 Keycloak은 B의 PostgreSQL에 연결한다. B의 5432·9092는 사설 IP에 바인딩하며 보안 그룹에서도 필요한 A 서버 접근만 허용한다.
+최초 배포는 Jenkins가 B 기반 서비스 → A → B 실시간 분석 → B Bridge 순서로 준비 상태를 확인하며 실행한다. 운영 백엔드와 Keycloak은 B의 PostgreSQL에 연결한다. B의 5432·9092는 사설 IP에 바인딩하며 보안 그룹에서도 필요한 A 서버 접근만 허용한다.
 
 ## 데이터 및 설정 유의 사항
 
 - 일반 배포에서 `down -v`를 사용하지 않는다.
-- SQL은 빈 PostgreSQL 데이터 디렉터리를 초기화할 때만 실행된다. 이후 스키마 변경은 Flyway로 관리한다.
+- SQL은 빈 PostgreSQL 데이터 디렉터리를 초기화할 때만 실행된다. 이후 스키마 변경은 Flyway로 관리한다. 이미 배포된 마이그레이션 파일(`V*.sql`)은 시드 한 줄이라도 수정하지 않고 새 버전을 추가한다. 수정하면 운영에서 체크섬 불일치로 서비스가 기동하지 않는다.
 - 현재 DB 연결은 공통 PostgreSQL 사용자 하나를 사용한다. 서비스별 사용자를 도입할 때는 사용자/권한 생성 SQL도 함께 구현해야 한다.
 - Kafka 초기화는 기존 토픽을 삭제하지 않는다. 기존 토픽의 파티션 수는 자동 변경하지 않으며 신규 raw 토픽은 기본 24파티션이다.
 - `mqtt/config/mosquitto.conf`는 기존 실행 중인 컨테이너의 바인드 경로 보존을 위해 남긴 레거시 파일이다. 새 Compose는 local/production 설정을 사용한다.

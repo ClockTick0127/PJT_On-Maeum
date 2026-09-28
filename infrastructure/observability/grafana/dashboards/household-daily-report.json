@@ -1,0 +1,377 @@
+{
+  "uid": "nilm-household-report",
+  "title": "NILM · 일별 보고서",
+  "schemaVersion": 41,
+  "version": 1,
+  "editable": false,
+  "timezone": "Asia/Seoul",
+  "tags": [
+    "NILM",
+    "daily-report"
+  ],
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "name": "household",
+        "label": "가구",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "nilm-reporting-postgres"
+        },
+        "query": "SELECT DISTINCT household_id FROM reporting.v_report_index ORDER BY 1",
+        "definition": "SELECT DISTINCT household_id FROM reporting.v_report_index ORDER BY 1",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "mode",
+        "label": "평가 출처",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "nilm-reporting-postgres"
+        },
+        "query": "SELECT DISTINCT assessment_mode FROM reporting.v_report_index WHERE household_id=${household:sqlstring} ORDER BY 1",
+        "definition": "SELECT DISTINCT assessment_mode FROM reporting.v_report_index WHERE household_id=${household:sqlstring} ORDER BY 1",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "report_id",
+        "label": "보고일 · 버전",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "nilm-reporting-postgres"
+        },
+        "query": "SELECT period_end::text || ' · ' || to_char(generated_at AT TIME ZONE 'Asia/Seoul','MM-DD HH24:MI:SS') || ' · ' || left(report_id,8) AS __text, report_id AS __value FROM reporting.v_report_index WHERE household_id=${household:sqlstring} AND assessment_mode=${mode:sqlstring} ORDER BY period_end DESC, generated_at DESC, report_id DESC",
+        "definition": "SELECT period_end::text || ' · ' || to_char(generated_at AT TIME ZONE 'Asia/Seoul','MM-DD HH24:MI:SS') || ' · ' || left(report_id,8) AS __text, report_id AS __value FROM reporting.v_report_index WHERE household_id=${household:sqlstring} AND assessment_mode=${mode:sqlstring} ORDER BY period_end DESC, generated_at DESC, report_id DESC",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "보고서 기준일 · 출처 · 생성 버전 (새 보고서는 새로고침 후 선택)",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT period_end::text AS 보고일, assessment_mode AS 평가출처, generated_at AS 생성시각, ((now() AT TIME ZONE 'Asia/Seoul')::date - period_end) AS 보고일경과일수, completeness_scope AS 수집범위, gold_run_id, rule_version, report_id FROM reporting.v_report_index WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring}",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 2,
+      "title": "당일 자동 요약",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 5
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT statement AS 요약 FROM reporting.v_report_summary WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring}",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "일별 기록된 최대 점수 · 누락일은 빈 값",
+      "type": "barchart",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT CASE WHEN extract(isodow FROM usage_date) = 1 THEN to_char(usage_date, 'MM-DD') ELSE repeat(' ', extract(isodow FROM usage_date)::int) END AS date, max_valid_score AS \"VALID 최대점수\", max_partial_score AS \"PARTIAL 최대점수\" FROM reporting.v_household_daily WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring} ORDER BY usage_date",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "date",
+        "orientation": "vertical",
+        "stacking": "none",
+        "showValue": "never",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "xTickLabelRotation": -45,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "xTickLabelSpacing": 0
+      }
+    },
+    {
+      "id": 4,
+      "title": "일별 평가 건수 · 지속시간 비율 아님",
+      "type": "barchart",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT CASE WHEN extract(isodow FROM usage_date) = 1 THEN to_char(usage_date, 'MM-DD') ELSE repeat(' ', extract(isodow FROM usage_date)::int) END AS date, recorded_count AS \"저장 평가건수\", valid_count AS \"VALID 건수\", partial_count AS \"PARTIAL 건수\" FROM reporting.v_household_daily WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring} ORDER BY usage_date",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "date",
+        "orientation": "vertical",
+        "stacking": "none",
+        "showValue": "never",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "xTickLabelRotation": -45,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "xTickLabelSpacing": 0
+      }
+    },
+    {
+      "id": 5,
+      "title": "당일 가전 사용 및 품질",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT appliance_type AS 가전, usage_status AS 상태, usage_minutes AS 사용분, usage_count AS 시작횟수, baseline_eligible AS 유효표본 FROM reporting.v_appliance_daily WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring} AND usage_date=(SELECT period_end FROM reporting.report_runs WHERE report_id=${report_id:sqlstring}) ORDER BY appliance_type",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 6,
+      "title": "사용 패턴 근거",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT appliance_type AS 가전, statement AS 설명, quality_status AS 품질, values_json AS 계산근거 FROM reporting.v_report_evidence WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring} AND evidence_type='USAGE_FREQUENCY' ORDER BY appliance_type",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 7,
+      "title": "최근 평가 근거 · 최대 100건",
+      "type": "table",
+      "datasource": {
+        "type": "postgres",
+        "uid": "nilm-reporting-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 24,
+        "h": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "postgres",
+            "uid": "nilm-reporting-postgres"
+          },
+          "rawSql": "SELECT statement AS 설명, quality_status AS 품질, values_json AS 평가근거 FROM reporting.v_report_evidence WHERE report_id=${report_id:sqlstring} AND household_id=${household:sqlstring} AND evidence_type='RECORDED_ASSESSMENT' ORDER BY (values_json::jsonb->>'assessed_at') DESC LIMIT 100",
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "데이터 없음"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "일별 추세",
+      "url": "/d/nilm-household-trends",
+      "type": "link",
+      "includeVars": true,
+      "includeTime": false
+    },
+    {
+      "title": "일별 보고서",
+      "url": "/d/nilm-household-report",
+      "type": "link",
+      "includeVars": true,
+      "includeTime": false
+    }
+  ]
+}

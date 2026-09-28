@@ -1,0 +1,38 @@
+[
+  {
+    "targets": [
+      "ec2-b.internal:9092"
+    ],
+    "labels": {
+      "service": "kafka",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "ec2-b.internal:5432"
+    ],
+    "labels": {
+      "service": "postgres",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "redis:6379"
+    ],
+    "labels": {
+      "service": "redis",
+      "environment": "ec2-a"
+    }
+  },
+  {
+    "targets": [
+      "mosquitto:8883"
+    ],
+    "labels": {
+      "service": "mosquitto",
+      "environment": "ec2-a"
+    }
+  }
+]

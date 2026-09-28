@@ -1,0 +1,2 @@
+"""Gold profile batch package."""
+

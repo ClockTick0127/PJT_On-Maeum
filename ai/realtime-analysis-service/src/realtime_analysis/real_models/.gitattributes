@@ -1,0 +1,2 @@
+# Preserve the reviewed source SHA-256 even on Windows checkouts.
+models.py -text

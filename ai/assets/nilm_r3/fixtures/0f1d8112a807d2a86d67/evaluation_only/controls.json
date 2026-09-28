@@ -1,0 +1,125 @@
+{
+  "cold_2": {
+    "metrics": {
+      "counts": {
+        "tp": 37,
+        "fp": 0,
+        "fn": 0,
+        "tn": 300,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 1.0,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 1.0,
+      "rank_score": 1.0,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      1234528,
+      1234865
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 337
+    }
+  },
+  "long_prefix": {
+    "metrics": {
+      "counts": {
+        "tp": 45,
+        "fp": 0,
+        "fn": 0,
+        "tn": 892,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 1.0,
+      "recall_including_unknown": 1.0,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 1.0,
+      "rank_score": 1.0,
+      "Q80": true,
+      "Q90": true,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      1234228,
+      1235165
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true,
+    "original_scene_comparison": {
+      "max_score_diff": 0.0,
+      "state_changes": 0,
+      "validity_changes": 0,
+      "compared_scores": 337
+    }
+  },
+  "off_control": {
+    "metrics": {
+      "counts": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "tn": 598,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.0,
+      "recall_including_unknown": null,
+      "unknown_fraction": 0.0,
+      "conditional_recall": null,
+      "rank_score": 0.0,
+      "Q80": false,
+      "Q90": false,
+      "trace_complete": false
+    },
+    "evaluation_interval": [
+      43634,
+      44234
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "other_day": {
+    "metrics": {
+      "counts": {
+        "tp": 31,
+        "fp": 6,
+        "fn": 3,
+        "tn": 294,
+        "u_on": 0,
+        "u_off": 0
+      },
+      "precision": 0.8378378378378378,
+      "recall_including_unknown": 0.9117647058823529,
+      "unknown_fraction": 0.0,
+      "conditional_recall": 0.9117647058823529,
+      "rank_score": 0.8732394366197183,
+      "Q80": true,
+      "Q90": false,
+      "trace_complete": true
+    },
+    "evaluation_interval": [
+      673878,
+      674212
+    ],
+    "same_frozen_threshold": true,
+    "actual_model_forward": true
+  },
+  "candidate_id": "0f1d8112a807d2a86d67",
+  "appliance": "iron",
+  "house": "H027",
+  "cold_runs_complete": 2,
+  "long_prefix_complete": true,
+  "truth_absent_cold2_scores_identical": true,
+  "recommendation": "external_review_pending"
+}

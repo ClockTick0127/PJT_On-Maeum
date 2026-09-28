@@ -1,0 +1,65 @@
+[
+  {
+    "targets": [
+      "http://ec2-b.internal:8000/health"
+    ],
+    "labels": {
+      "service": "ai-health",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "http://ec2-b.internal:8000/ready"
+    ],
+    "labels": {
+      "service": "ai-ready",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "http://api-gateway:8080/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "api-gateway",
+      "environment": "ec2-a"
+    }
+  },
+  {
+    "targets": [
+      "http://iot-device-service:8081/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "iot-device-service",
+      "environment": "ec2-a"
+    }
+  },
+  {
+    "targets": [
+      "http://monitoring-service:8082/actuator/health/readiness"
+    ],
+    "labels": {
+      "service": "monitoring-service",
+      "environment": "ec2-a"
+    }
+  },
+  {
+    "targets": [
+      "http://keycloak:9000/health/ready"
+    ],
+    "labels": {
+      "service": "keycloak",
+      "environment": "ec2-a"
+    }
+  },
+  {
+    "targets": [
+      "http://frontend/healthz"
+    ],
+    "labels": {
+      "service": "frontend",
+      "environment": "ec2-a"
+    }
+  }
+]

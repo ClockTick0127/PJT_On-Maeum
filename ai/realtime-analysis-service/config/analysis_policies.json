@@ -1,0 +1,57 @@
+[
+  {
+    "policy_code": "ROUTINE_MISSED_DEFAULT",
+    "algorithm_type": "EXPECTED_USE_DEADLINE",
+    "parameters": {
+      "minimum_baseline_strength": 80,
+      "evaluation_interval_seconds": 60
+    },
+    "event_type": "ROUTINE_MISSED",
+    "cooldown_hours": 24,
+    "enabled": true
+  },
+  {
+    "policy_code": "PROLONGED_INACTIVITY_DEFAULT",
+    "algorithm_type": "AWAKE_INACTIVITY_ELAPSED",
+    "parameters": {
+      "inactivity_hours": 2,
+      "sleep_window": {
+        "start": "23:00",
+        "end": "07:00"
+      },
+      "evaluation_interval_seconds": 60
+    },
+    "event_type": "PROLONGED_INACTIVITY",
+    "cooldown_hours": 12,
+    "enabled": true
+  },
+  {
+    "policy_code": "PROLONGED_APPLIANCE_USE_DEFAULT",
+    "algorithm_type": "OPEN_SESSION_DURATION",
+    "parameters": {
+      "evaluation_interval_seconds": 60,
+      "limits_minutes": {
+        "INDUCTION": 2,
+        "IRON": 2
+      }
+    },
+    "event_type": "PROLONGED_APPLIANCE_USE",
+    "cooldown_hours": 0,
+    "enabled": true
+  },
+  {
+    "policy_code": "ROUTINE_CHANGED_DEFAULT",
+    "algorithm_type": "FIRST_USE_TIME_SHIFT",
+    "parameters": {
+      "recent_window_days": 7,
+      "recent_minimum_valid_days": 5,
+      "reference_window_days": 21,
+      "reference_minimum_valid_days": 14,
+      "minimum_daily_use_probability": 0.7,
+      "minimum_shift_minutes": 120
+    },
+    "event_type": "ROUTINE_CHANGED",
+    "cooldown_hours": 168,
+    "enabled": true
+  }
+]

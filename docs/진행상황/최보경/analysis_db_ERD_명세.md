@@ -54,7 +54,9 @@ appliance_usage_session
 - 일일 관측 결과 하나에서 대상 가전별 활동 요약이 여러 건 생성될 수 있다.
 - 가전별 일일 활동 한 건에서 사용 세션이 여러 건 생성될 수 있다.
 - 사용하지 않은 가전은 일일 활동의 `event_count`가 0이며 사용 세션은 없다.
-- `model_artifact`, `routine_baseline`, `analysis_policy`는 서비스가 직접 조회하는 설정·기준 테이블이므로 MVP에서는 물리 FK 없이 독립적으로 둔다.
+- `model_artifact`, `routine_baseline`, `analysis_policy`는 서비스가 직접 조회하는
+  설정·기준 테이블이므로
+  MVP에서는 물리 FK 없이 독립적으로 둔다.
 
 ---
 
@@ -70,9 +72,10 @@ AI 모델 파일 자체가 아니라 모델의 이름, 버전, 저장 위치와 
 | `id` | UUID | Y | 모델을 구분하는 고유 ID |
 | `model_name` | VARCHAR(100) | Y | 모델 이름. 예: `nilm-tcn` |
 | `version` | VARCHAR(50) | Y | 모델 버전. 예: `v1.0.0` |
-| `artifact_uri` | VARCHAR(500) | Y | 모델 파일과 manifest가 있는 로컬 또는 S3 경로 |
+| `artifact_uri` | VARCHAR(500) | Y | 모델 파일이 있는 로컬 또는 S3 경로 |
+| `manifest_uri` | VARCHAR(500) | Y | 모델 입출력·전처리·threshold manifest 경로 |
 | `status` | VARCHAR(20) | Y | 모델의 현재 사용 상태 |
-| `created_at` | TIMESTAMP | Y | 모델 정보가 DB에 등록된 시각 |
+| `created_at` | TIMESTAMPTZ | Y | 모델 정보가 DB에 등록된 시각 |
 
 #### 상태값
 
@@ -136,7 +139,7 @@ AI 모델 파일 자체가 아니라 모델의 이름, 버전, 저장 위치와 
 | `reliability_weight` | DECIMAL(5,4) | Y | 해당 가전을 활동 판단에 반영할 가중치 |
 | `baseline_data` | JSONB | Y | 시간대 확률 등 알고리즘별 추가 기준값 |
 | `enabled` | BOOLEAN | Y | 현재 이상 판단에 사용할 기준선인지 여부 |
-| `calculated_at` | TIMESTAMP | Y | 기준선을 마지막으로 계산한 시각 |
+| `calculated_at` | TIMESTAMPTZ | Y | 기준선을 마지막으로 계산한 시각 |
 
 #### 주요 값
 
@@ -193,7 +196,7 @@ AI 모델 파일 자체가 아니라 모델의 이름, 버전, 저장 위치와 
 | `severity` | VARCHAR(20) | Y | 사용자에게 표시할 위험 단계 |
 | `cooldown_hours` | SMALLINT | Y | 동일 이벤트의 반복 생성을 막는 시간 |
 | `enabled` | BOOLEAN | Y | 현재 정책 사용 여부 |
-| `created_at` | TIMESTAMP | Y | 정책이 등록된 시각 |
+| `created_at` | TIMESTAMPTZ | Y | 정책이 등록된 시각 |
 
 #### 정책 예시
 
@@ -246,7 +249,7 @@ AI 모델 파일 자체가 아니라 모델의 이름, 버전, 저장 위치와 
 | `expected_sample_count` | BIGINT | Y | 계획된 관측 시간 동안 수신해야 하는 샘플 수 |
 | `coverage_ratio` | DECIMAL(5,4) | Y | 정상 수집 비율. `sample_count / expected_sample_count` |
 | `observation_status` | VARCHAR(30) | Y | 데이터 관측 및 처리 상태 |
-| `updated_at` | TIMESTAMP | Y | 관측 결과가 마지막으로 갱신된 시각 |
+| `updated_at` | TIMESTAMPTZ | Y | 관측 결과가 마지막으로 갱신된 시각 |
 
 #### 예상 샘플 수
 
@@ -300,7 +303,7 @@ observation_status = SENSOR_GAP
 | `observation_daily_id` | UUID | Y | `household_observation_daily.id`를 참조하는 FK |
 | `appliance_type` | VARCHAR(50) | Y | 전자레인지, 전기포트 등 대상 가전 |
 | `event_count` | INTEGER | Y | 해당 날짜에 감지된 사용 세션 수 |
-| `updated_at` | TIMESTAMP | Y | 일일 활동 결과가 마지막으로 갱신된 시각 |
+| `updated_at` | TIMESTAMPTZ | Y | 일일 활동 결과가 마지막으로 갱신된 시각 |
 
 #### 사용 여부 판단
 
@@ -332,9 +335,11 @@ AI가 감지한 가전 사용 한 번의 시작·종료 시각과 추론 확률�
 | --- | --- | --- | --- |
 | `id` | UUID | Y | 가전 사용 세션을 구분하는 고유 ID |
 | `activity_daily_id` | UUID | Y | `household_activity_daily.id`를 참조하는 FK |
-| `started_at` | TIMESTAMP | Y | 가전 사용이 시작됐다고 판정한 시각 |
-| `ended_at` | TIMESTAMP | N | 가전 사용이 종료됐다고 판정한 시각. 사용 중이면 NULL 가능 |
+| `started_at` | TIMESTAMPTZ | Y | 가전 사용이 시작됐다고 판정한 시각 |
+| `ended_at` | TIMESTAMPTZ | N | 가전 사용이 종료됐다고 판정한 시각. 사용 중이면 NULL 가능 |
 | `max_probability` | DECIMAL(5,4) | Y | 세션 동안 모델이 출력한 가장 높은 사용 확률 |
+| `decision_threshold` | DECIMAL(5,4) | Y | 세션을 ON으로 판정할 때 적용한 manifest 임계값 |
+| `updated_at` | TIMESTAMPTZ | Y | 최대 확률 또는 종료 시각을 마지막으로 수정한 시각 |
 
 가구·날짜·가전 정보는 부모 테이블을 통해 확인하므로 세션 테이블에 중복 저장하지 않는다.
 
@@ -359,7 +364,9 @@ appliance_usage_session
 #### 제약조건
 
 - `max_probability`는 0~1 범위다.
+- `decision_threshold`는 0~1 범위다.
 - `ended_at`이 존재하면 `started_at`보다 빠를 수 없다.
+- `activity_daily_id + started_at` 조합은 중복될 수 없다.
 - 일일 활동의 `event_count`는 연결된 세션 수와 일치해야 한다.
 
 ---
@@ -370,7 +377,7 @@ appliance_usage_session
 1. Kafka에서 가구의 전력 데이터 수신
 2. household_observation_daily의 샘플 수와 수집률 갱신
 3. AI 모델로 6종 가전의 사용 확률 추론
-4. 가전 사용이 감지되면 appliance_usage_session 생성
+4. 가전 사용이 감지되면 확률·threshold와 함께 appliance_usage_session 생성
 5. 해당 household_activity_daily의 event_count 증가
 6. 날짜 종료 후 관측 상태와 가전별 일일 활동 확정
 7. 일일 활동 결과를 routine_baseline과 비교
@@ -405,9 +412,10 @@ appliance_usage_session
 | 모델 ID | `id` | UUID | 모델 정보를 유일하게 구분하는 기본키다. 모델 이름이나 버전이 같아 보여도 이 값으로 정확히 식별한다. |
 | 모델 이름 | `model_name` | VARCHAR(100) | 모델의 고정된 이름이다. 예: `nilm-tcn`. 같은 모델을 다시 학습해도 이름은 유지하고 버전을 변경한다. |
 | 모델 버전 | `version` | VARCHAR(50) | 같은 모델의 학습·개선 결과를 구분한다. 예: `v1.0.0`. 이전 모델로 되돌리거나 결과를 재현할 때 사용한다. |
-| 모델 파일 위치 | `artifact_uri` | VARCHAR(500) | 실제 모델 파일과 manifest가 저장된 경로다. 예: 로컬 파일 경로 또는 `s3://.../nilm-tcn-v1.pt`. DB에는 모델 파일 자체를 저장하지 않는다. |
+| 모델 파일 위치 | `artifact_uri` | VARCHAR(500) | 실제 모델 파일이 저장된 경로다. 예: 로컬 파일 경로 또는 `s3://.../nilm-tcn-v1.pt`. DB에는 모델 파일 자체를 저장하지 않는다. |
+| Manifest 위치 | `manifest_uri` | VARCHAR(500) | Feature 순서, 정규화 값, 출력 가전 순서와 threshold가 기록된 manifest 경로다. |
 | 모델 상태 | `status` | VARCHAR(20) | 모델의 운영 상태다. `VALIDATED`는 검증 완료, `ACTIVE`는 현재 사용 중, `RETIRED`는 사용 종료를 뜻한다. |
-| 등록 시각 | `created_at` | TIMESTAMP | 모델 정보가 `analysis_db`에 처음 등록된 시각이다. 모델 학습 완료 시각과는 다를 수 있다. |
+| 등록 시각 | `created_at` | TIMESTAMPTZ | 모델 정보가 `analysis_db`에 처음 등록된 시각이다. 모델 학습 완료 시각과는 다를 수 있다. |
 
 ### 11.2 가구별 가전 활동 기준선 — `routine_baseline`
 
@@ -423,7 +431,7 @@ appliance_usage_session
 | 신뢰 가중치 | `reliability_weight` | DECIMAL(5,4) | 해당 가전을 가구 활동 판단에 얼마나 중요하게 반영할지 나타내는 0~1 값이다. 자주 사용되고 모델 신뢰도가 높은 가전일수록 높게 설정한다. |
 | 기준선 상세 데이터 | `baseline_data` | JSONB | 시간대별 사용확률, 선호 시간 구간 등 기준선 알고리즘마다 달라지는 값을 저장한다. 고정 컬럼 추가 없이 시간대 분석을 확장하기 위한 공간이다. |
 | 사용 여부 | `enabled` | BOOLEAN | 해당 기준선을 현재 이상 감지에 사용할지 결정한다. `false`이면 기준선 데이터는 보존하지만 판정에서는 제외한다. |
-| 계산 시각 | `calculated_at` | TIMESTAMP | `sample_days`, 사용확률과 시간대 기준을 마지막으로 다시 계산한 시각이다. 기준선이 최신인지 확인할 때 사용한다. |
+| 계산 시각 | `calculated_at` | TIMESTAMPTZ | `sample_days`, 사용확률과 시간대 기준을 마지막으로 다시 계산한 시각이다. 기준선이 최신인지 확인할 때 사용한다. |
 
 ### 11.3 이상 감지 정책 — `analysis_policy`
 
@@ -438,7 +446,7 @@ appliance_usage_session
 | 심각도 | `severity` | VARCHAR(20) | 사용자 화면과 업무 처리에 사용하는 단계형 위험도다. 예: `WATCH`, `CONFIRM`, `CRITICAL`. |
 | 재발생 제한 시간 | `cooldown_hours` | SMALLINT | 같은 정책 이벤트를 다시 생성하지 않을 시간이다. 48이면 최초 발생 후 48시간 동안 같은 이벤트의 반복 발행을 막는다. |
 | 활성 여부 | `enabled` | BOOLEAN | 현재 정책을 실행할지 결정한다. `false`이면 정책을 삭제하지 않고 일시 중지한다. |
-| 등록 시각 | `created_at` | TIMESTAMP | 정책이 DB에 처음 등록된 시각이다. |
+| 등록 시각 | `created_at` | TIMESTAMPTZ | 정책이 DB에 처음 등록된 시각이다. |
 
 ### 11.4 가구별 일일 데이터 관측 — `household_observation_daily`
 
@@ -451,7 +459,7 @@ appliance_usage_session
 | 예상 샘플 수 | `expected_sample_count` | BIGINT | 계획된 관측 시간 동안 원래 수신해야 하는 샘플 수다. 하루 전체 1Hz 수집이면 86,400개다. |
 | 정상 수집 비율 | `coverage_ratio` | DECIMAL(5,4) | `sample_count / expected_sample_count`로 계산한다. 0.9525는 예상 데이터의 95.25%를 정상 수집했다는 의미다. |
 | 데이터 관측 상태 | `observation_status` | VARCHAR(30) | 이날 데이터를 AI 결과와 기준선 계산에 사용할 수 있는지 나타낸다. `COLLECTING`, `VALID`, `INSUFFICIENT_DATA`, `SENSOR_GAP`, `PROCESSING_ERROR`, `EXCLUDED` 등을 사용한다. |
-| 수정 시각 | `updated_at` | TIMESTAMP | 샘플 수, 수집률 또는 관측 상태가 마지막으로 갱신된 시각이다. |
+| 수정 시각 | `updated_at` | TIMESTAMPTZ | 샘플 수, 수집률 또는 관측 상태가 마지막으로 갱신된 시각이다. |
 
 ### 11.5 가전별 일일 활동 요약 — `household_activity_daily`
 
@@ -461,7 +469,7 @@ appliance_usage_session
 | 일일 관측 ID | `observation_daily_id` | UUID | `household_observation_daily.id`를 참조하는 FK다. 어떤 가구의 어느 날짜 데이터에서 나온 결과인지 연결한다. |
 | 가전 유형 | `appliance_type` | VARCHAR(50) | 일일 사용 결과를 집계할 대상 가전이다. 예: `MICROWAVE`, `KETTLE`. |
 | 사용 횟수 | `event_count` | INTEGER | 해당 날짜에 만들어진 가전 사용 세션 수다. 0이면 정상 관측됐지만 해당 가전 사용이 감지되지 않았다는 의미다. |
-| 수정 시각 | `updated_at` | TIMESTAMP | 새로운 사용 세션이 추가되어 `event_count`가 마지막으로 변경된 시각이다. |
+| 수정 시각 | `updated_at` | TIMESTAMPTZ | 새로운 사용 세션이 추가되어 `event_count`가 마지막으로 변경된 시각이다. |
 
 ### 11.6 가전 사용 세션 — `appliance_usage_session`
 
@@ -469,9 +477,11 @@ appliance_usage_session
 | --- | --- | --- | --- |
 | 사용 세션 ID | `id` | UUID | AI가 감지한 개별 가전 사용 세션을 유일하게 구분하는 기본키다. |
 | 일일 활동 ID | `activity_daily_id` | UUID | `household_activity_daily.id`를 참조하는 FK다. 세션이 어느 날짜의 어떤 가전 활동에 속하는지 연결한다. |
-| 사용 시작 시각 | `started_at` | TIMESTAMP | AI가 가전 사용이 시작됐다고 판정한 시각이다. 시간대별 사용 패턴의 기준이 된다. |
-| 사용 종료 시각 | `ended_at` | TIMESTAMP | AI가 가전 사용이 종료됐다고 판정한 시각이다. 아직 사용 중이거나 종료를 감지하지 못했으면 NULL일 수 있다. |
+| 사용 시작 시각 | `started_at` | TIMESTAMPTZ | AI가 가전 사용이 시작됐다고 판정한 시각이다. 시간대별 사용 패턴의 기준이 된다. |
+| 사용 종료 시각 | `ended_at` | TIMESTAMPTZ | AI가 가전 사용이 종료됐다고 판정한 시각이다. 아직 사용 중이거나 종료를 감지하지 못했으면 NULL일 수 있다. |
 | 최대 예측 확률 | `max_probability` | DECIMAL(5,4) | 해당 세션 동안 모델이 출력한 가장 높은 사용 확률이다. 판정 근거 확인과 threshold 조정에 사용한다. |
+| 판정 임계값 | `decision_threshold` | DECIMAL(5,4) | 해당 세션을 ON으로 판단할 때 manifest에서 적용한 threshold다. |
+| 수정 시각 | `updated_at` | TIMESTAMPTZ | 최대 확률 또는 종료 시각을 마지막으로 수정한 시각이다. |
 
 ### 11.7 ERDCloud 입력 규칙
 

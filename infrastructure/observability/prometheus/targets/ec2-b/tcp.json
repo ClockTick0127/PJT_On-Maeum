@@ -1,0 +1,20 @@
+[
+  {
+    "targets": [
+      "kafka:19092"
+    ],
+    "labels": {
+      "service": "kafka",
+      "environment": "ec2-b"
+    }
+  },
+  {
+    "targets": [
+      "postgres:5432"
+    ],
+    "labels": {
+      "service": "postgres",
+      "environment": "ec2-b"
+    }
+  }
+]

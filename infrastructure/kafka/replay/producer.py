@@ -11,13 +11,14 @@
 """
 import argparse
 import json
+import os
 import random
 import time
 from datetime import datetime, timezone
 
 from confluent_kafka import Producer
 
-TOPIC = "power-raw"
+TOPIC = os.getenv("KAFKA_TOPIC", "power.raw.v1")  # 브릿지·적재기와 통일 (설계안 0914)
 
 
 def to_iso(epoch: float) -> str:

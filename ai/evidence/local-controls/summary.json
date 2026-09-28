@@ -1,0 +1,345 @@
+[
+  {
+    "appliance": "kettle",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "tn": 900,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1192,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 1.0,
+    "false_positive_seconds": 0,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "kettle",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 43,
+      "fn": 0,
+      "tn": 557,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 43
+  },
+  {
+    "appliance": "kettle",
+    "control": "other_day",
+    "counts": {
+      "tp": 54,
+      "fp": 0,
+      "fn": 77,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 685,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [
+      72499
+    ],
+    "recall": 0.4122137404580153,
+    "false_positive_seconds": 0
+  },
+  {
+    "appliance": "induction",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 243,
+      "fp": 0,
+      "fn": 4,
+      "tn": 684,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1185,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 0.9838056680161943,
+    "false_positive_seconds": 0,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "induction",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "tn": 600,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 0
+  },
+  {
+    "appliance": "induction",
+    "control": "other_day",
+    "counts": {
+      "tp": 194,
+      "fp": 3,
+      "fn": 9,
+      "tn": 144,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 604,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 0.9556650246305419,
+    "false_positive_seconds": 3
+  },
+  {
+    "appliance": "iron",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 45,
+      "fp": 0,
+      "fn": 0,
+      "tn": 892,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1191,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 1.0,
+    "false_positive_seconds": 0,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "iron",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 0,
+      "tn": 598,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 2
+  },
+  {
+    "appliance": "iron",
+    "control": "other_day",
+    "counts": {
+      "tp": 31,
+      "fp": 6,
+      "fn": 3,
+      "tn": 294,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 588,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 0.9117647058823529,
+    "false_positive_seconds": 6
+  },
+  {
+    "appliance": "microwave",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 266,
+      "fp": 1,
+      "fn": 5,
+      "tn": 899,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1425,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 0.981549815498155,
+    "false_positive_seconds": 1,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "microwave",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "tn": 600,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 0
+  },
+  {
+    "appliance": "microwave",
+    "control": "other_day",
+    "counts": {
+      "tp": 85,
+      "fp": 234,
+      "fn": 5,
+      "tn": 66,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 644,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [
+      2880,
+      2881,
+      2882,
+      2883
+    ],
+    "recall": 0.9444444444444444,
+    "false_positive_seconds": 234
+  },
+  {
+    "appliance": "hair_dryer",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 900,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1361,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 1.0,
+    "false_positive_seconds": 0,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "hair_dryer",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 14,
+      "fn": 0,
+      "tn": 586,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 14
+  },
+  {
+    "appliance": "hair_dryer",
+    "control": "other_day",
+    "counts": {
+      "tp": 150,
+      "fp": 89,
+      "fn": 1,
+      "tn": 211,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 705,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 0.9933774834437086,
+    "false_positive_seconds": 89
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "control": "long_prefix",
+    "counts": {
+      "tp": 59,
+      "fp": 5,
+      "fn": 0,
+      "tn": 895,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1213,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 1.0,
+    "false_positive_seconds": 5,
+    "selected_clip_scores_identical_to_cold": true,
+    "selected_clip_states_identical_to_cold": true
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "control": "off_control",
+    "counts": {
+      "tp": 0,
+      "fp": 123,
+      "fn": 0,
+      "tn": 477,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 854,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": null,
+    "false_positive_seconds": 123
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "control": "other_day",
+    "counts": {
+      "tp": 727,
+      "fp": 1,
+      "fn": 0,
+      "tn": 299,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "rows": 1281,
+    "model_forward_executed": true,
+    "threshold_unchanged": true,
+    "state_mismatch_indices_vs_h200": [],
+    "recall": 1.0,
+    "false_positive_seconds": 1
+  }
+]

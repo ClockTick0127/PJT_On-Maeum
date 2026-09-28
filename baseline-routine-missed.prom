@@ -1,0 +1,322 @@
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 394.0
+python_gc_objects_collected_total{generation="1"} 312.0
+python_gc_objects_collected_total{generation="2"} 0.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 199.0
+python_gc_collections_total{generation="1"} 18.0
+python_gc_collections_total{generation="2"} 1.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="11",patchlevel="16",version="3.11.16"} 1.0
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 2.160852992e+09
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 8.4922368e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.78969152861e+09
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 2.9
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 45.0
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP nilm_analysis_stage_duration_seconds Realtime analysis pipeline stage duration in seconds.
+# TYPE nilm_analysis_stage_duration_seconds histogram
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="consumer_poll"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="consumer_poll"} 288.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_count{stage="consumer_poll"} 300.0
+nilm_analysis_stage_duration_seconds_sum{stage="consumer_poll"} 28.131129507999972
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="deserialize_validate"} 65.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="deserialize_validate"} 299.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_count{stage="deserialize_validate"} 300.0
+nilm_analysis_stage_duration_seconds_sum{stage="deserialize_validate"} 0.045202877999999946
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="observation_db"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="observation_db"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="observation_db"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="observation_db"} 11.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="observation_db"} 255.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_count{stage="observation_db"} 300.0
+nilm_analysis_stage_duration_seconds_sum{stage="observation_db"} 2.425555629
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_count{stage="buffer_append"} 300.0
+nilm_analysis_stage_duration_seconds_sum{stage="buffer_append"} 0.0026402259999999994
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="offset_commit"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="offset_commit"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="offset_commit"} 73.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="offset_commit"} 299.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_count{stage="offset_commit"} 300.0
+nilm_analysis_stage_duration_seconds_sum{stage="offset_commit"} 0.43250412499999985
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="preprocess"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="preprocess"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="preprocess"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="preprocess"} 0.001401959
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="inference"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="inference"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="inference"} 0.00024393
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="state_decision_transition"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="state_decision_transition"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="state_decision_transition"} 0.000246129
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="activity_db"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="activity_db"} 1.0286e-05
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="snapshot_publish_ack"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="snapshot_publish_ack"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="snapshot_publish_ack"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="snapshot_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="snapshot_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="snapshot_publish_ack"} 0.6594742250000001
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="state_tracking"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="state_tracking"} 1.7497e-05
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="anomaly_detection"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="anomaly_detection"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="anomaly_detection"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="anomaly_detection"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="anomaly_detection"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="anomaly_detection"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="anomaly_detection"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="anomaly_detection"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="anomaly_detection"} 0.073749422
+nilm_analysis_stage_duration_seconds_bucket{le="0.0001",stage="event_publish_ack"} 0.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.0005",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.001",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.005",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.01",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.025",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.05",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.1",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.25",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="0.5",stage="event_publish_ack"} 1.0
+nilm_analysis_stage_duration_seconds_bucket{le="1.0",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="2.5",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="5.0",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="10.0",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="30.0",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_bucket{le="+Inf",stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_count{stage="event_publish_ack"} 2.0
+nilm_analysis_stage_duration_seconds_sum{stage="event_publish_ack"} 0.917279902
+# HELP nilm_analysis_stage_duration_seconds_created Realtime analysis pipeline stage duration in seconds.
+# TYPE nilm_analysis_stage_duration_seconds_created gauge
+nilm_analysis_stage_duration_seconds_created{stage="consumer_poll"} 1.7896916925167093e+09
+nilm_analysis_stage_duration_seconds_created{stage="deserialize_validate"} 1.7896916925177755e+09
+nilm_analysis_stage_duration_seconds_created{stage="observation_db"} 1.7896916925306382e+09
+nilm_analysis_stage_duration_seconds_created{stage="buffer_append"} 1.7896916925308073e+09
+nilm_analysis_stage_duration_seconds_created{stage="offset_commit"} 1.7896916925330222e+09
+nilm_analysis_stage_duration_seconds_created{stage="preprocess"} 1.789691725091868e+09
+nilm_analysis_stage_duration_seconds_created{stage="inference"} 1.789691725092486e+09
+nilm_analysis_stage_duration_seconds_created{stage="state_decision_transition"} 1.7896917250927744e+09
+nilm_analysis_stage_duration_seconds_created{stage="activity_db"} 1.789691725092864e+09
+nilm_analysis_stage_duration_seconds_created{stage="snapshot_publish_ack"} 1.7896917257516706e+09
+nilm_analysis_stage_duration_seconds_created{stage="state_tracking"} 1.7896917257519422e+09
+nilm_analysis_stage_duration_seconds_created{stage="anomaly_detection"} 1.789691725812038e+09
+nilm_analysis_stage_duration_seconds_created{stage="event_publish_ack"} 1.7896917267290668e+09
+# HELP nilm_analysis_e2e_duration_seconds Duration from measurement observation to snapshot publication.
+# TYPE nilm_analysis_e2e_duration_seconds histogram
+nilm_analysis_e2e_duration_seconds_bucket{le="0.1"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="0.25"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="0.5"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="1.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="2.5"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="5.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="10.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="30.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="60.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="120.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="300.0"} 0.0
+nilm_analysis_e2e_duration_seconds_bucket{le="+Inf"} 2.0
+nilm_analysis_e2e_duration_seconds_count 2.0
+nilm_analysis_e2e_duration_seconds_sum 9054.830855
+# HELP nilm_analysis_e2e_duration_seconds_created Duration from measurement observation to snapshot publication.
+# TYPE nilm_analysis_e2e_duration_seconds_created gauge
+nilm_analysis_e2e_duration_seconds_created 1.7896915302635155e+09
+# HELP nilm_analysis_messages_total Kafka input messages by terminal processing status.
+# TYPE nilm_analysis_messages_total counter
+nilm_analysis_messages_total{status="processed"} 300.0
+# HELP nilm_analysis_messages_created Kafka input messages by terminal processing status.
+# TYPE nilm_analysis_messages_created gauge
+nilm_analysis_messages_created{status="processed"} 1.7896916925331411e+09
+# HELP nilm_analysis_dlq_messages_total Messages successfully published to the analysis DLQ.
+# TYPE nilm_analysis_dlq_messages_total counter
+# HELP nilm_analysis_errors_total Realtime analysis errors by stage and exception type.
+# TYPE nilm_analysis_errors_total counter
+# HELP nilm_analysis_consumer_lag_messages Difference between the Kafka high watermark and consumer position.
+# TYPE nilm_analysis_consumer_lag_messages gauge
+nilm_analysis_consumer_lag_messages{partition="7",topic="power.raw.v1"} 0.0
+# HELP nilm_analysis_model_info Currently loaded analysis model.
+# TYPE nilm_analysis_model_info gauge
+nilm_analysis_model_info{name="nilm-tcn",version="v1.0.0"} 1.0

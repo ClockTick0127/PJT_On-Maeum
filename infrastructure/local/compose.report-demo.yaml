@@ -1,0 +1,39 @@
+name: nilm-report-demo
+services:
+  report-demo:
+    image: nilm-demo-report:local
+    container_name: nilm-report-demo
+    restart: unless-stopped
+    env_file:
+      - report-demo.env
+    environment:
+      SERVER_PORT: 8082
+      APP_SECURITY_ENABLED: "true"
+      JWT_ISSUER_URI: http://localhost:8090/realms/nilm
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI: http://host.docker.internal:8090/realms/nilm/protocol/openid-connect/certs
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/nilm_report_demo
+      DEMO_REPORT_DB_URL: jdbc:postgresql://postgres:5432/monitoring_db?connectTimeout=5&socketTimeout=20
+      TEST_DATA_ENABLED: "false"
+      KAFKA_CONSUMER_ENABLED: "false"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      WEB_PUSH_ENABLED: "false"
+      WEB_PUSH_VAPID_PUBLIC_KEY: ""
+      WEB_PUSH_VAPID_PRIVATE_KEY: ""
+      RISK_SCHEDULER_ENABLED: "false"
+      AWAY_MODE_SCHEDULER_ENABLED: "false"
+      POWER_USAGE_SNAPSHOT_STORE: memory
+      MANAGEMENT_HEALTH_GROUP_READINESS_INCLUDE: readinessState,db
+    ports:
+      - "127.0.0.1:8082:8082"
+    networks:
+      - local
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8082/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      start_period: 45s
+      retries: 6
+networks:
+  local:
+    external: true
+    name: nilm-net

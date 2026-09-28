@@ -1,0 +1,15 @@
+{
+  "message_id": "cc445f6b-9d0b-51d9-b6bf-2972c875ed12",
+  "household_id": "r3-kettle",
+  "device_id": "main",
+  "measured_at": "2026-09-21T12:00:00",
+  "run_id": "r3-kettle-e2e-20260921",
+  "profile_id": "r2-scene-kettle-008b808cf17505534886",
+  "source_index": 2490791,
+  "valid": true,
+  "context": true,
+  "active_power": 2710.2763671875,
+  "reactive_power": 12.067999839782715,
+  "power_factor": 0.9999333620071411,
+  "current": 11.928299903869629
+}

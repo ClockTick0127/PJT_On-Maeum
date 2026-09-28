@@ -1,0 +1,29 @@
+{
+  "config_version": "observation-targets-v1",
+  "targets": [
+    {
+      "household_id": "H001",
+      "device_id": "main",
+      "effective_from": "2026-09-01T00:00:00+09:00",
+      "effective_to": null,
+      "sampling_interval_seconds": 1,
+      "observation_enabled": true
+    },
+    {
+      "household_id": "H002",
+      "device_id": "main",
+      "effective_from": "2026-09-01T00:00:00+09:00",
+      "effective_to": null,
+      "sampling_interval_seconds": 1,
+      "observation_enabled": true
+    },
+    {
+      "household_id": "H003",
+      "device_id": "main",
+      "effective_from": "2026-09-01T00:00:00+09:00",
+      "effective_to": null,
+      "sampling_interval_seconds": 1,
+      "observation_enabled": true
+    }
+  ]
+}

@@ -1,0 +1,310 @@
+[
+  {
+    "appliance": "kettle",
+    "rows": 592,
+    "ready": 338,
+    "max_score_difference_vs_h200": 0.008242905139923096,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2490671,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2490791,
+        "state": "ON"
+      },
+      {
+        "source_index": 2490829,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 2490791,
+        "true_end_exclusive": 2490829,
+        "first_off_at_or_after_true_end": 2490829,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      }
+    ],
+    "runtime_state_parity": true
+  },
+  {
+    "appliance": "induction",
+    "rows": 585,
+    "ready": 331,
+    "max_score_difference_vs_h200": 0.0014494061470031738,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 93,
+      "fp": 0,
+      "fn": 0,
+      "tn": 238,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 93,
+      "fp": 0,
+      "fn": 0,
+      "tn": 238,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2312376,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312407,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2312436,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312467,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2312496,
+        "state": "ON"
+      },
+      {
+        "source_index": 2312527,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 2312376,
+        "true_end_exclusive": 2312407,
+        "first_off_at_or_after_true_end": 2312407,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      },
+      {
+        "true_start_index": 2312436,
+        "true_end_exclusive": 2312467,
+        "first_off_at_or_after_true_end": 2312467,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      },
+      {
+        "true_start_index": 2312496,
+        "true_end_exclusive": 2312527,
+        "first_off_at_or_after_true_end": 2312527,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      }
+    ],
+    "runtime_state_parity": true
+  },
+  {
+    "appliance": "iron",
+    "rows": 591,
+    "ready": 337,
+    "max_score_difference_vs_h200": 0.0012079179286956787,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 37,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 37,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1234528,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1234648,
+        "state": "ON"
+      },
+      {
+        "source_index": 1234685,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 1234648,
+        "true_end_exclusive": 1234685,
+        "first_off_at_or_after_true_end": 1234685,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      }
+    ],
+    "runtime_state_parity": true
+  },
+  {
+    "appliance": "microwave",
+    "rows": 825,
+    "ready": 571,
+    "max_score_difference_vs_h200": 0.013307571411132812,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 266,
+      "fp": 1,
+      "fn": 5,
+      "tn": 299,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 266,
+      "fp": 1,
+      "fn": 5,
+      "tn": 299,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1198439,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1198564,
+        "state": "ON"
+      },
+      {
+        "source_index": 1198831,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 1198559,
+        "true_end_exclusive": 1198830,
+        "first_off_at_or_after_true_end": 1198831,
+        "end_delay_seconds": 1,
+        "off_seconds_inside_true_on": 5
+      }
+    ],
+    "runtime_state_parity": true
+  },
+  {
+    "appliance": "hair_dryer",
+    "rows": 761,
+    "ready": 507,
+    "max_score_difference_vs_h200": 0.0037301182746887207,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 207,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 1507865,
+        "state": "OFF"
+      },
+      {
+        "source_index": 1507985,
+        "state": "ON"
+      },
+      {
+        "source_index": 1508192,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 1507985,
+        "true_end_exclusive": 1508192,
+        "first_off_at_or_after_true_end": 1508192,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      }
+    ],
+    "runtime_state_parity": true
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "rows": 613,
+    "ready": 359,
+    "max_score_difference_vs_h200": 0.00831073522567749,
+    "state_mismatch_indices": [],
+    "counts": {
+      "tp": 59,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "locked_expected_counts": {
+      "tp": 59,
+      "fp": 0,
+      "fn": 0,
+      "tn": 300,
+      "u_on": 0,
+      "u_off": 0
+    },
+    "transitions": [
+      {
+        "source_index": 2880740,
+        "state": "OFF"
+      },
+      {
+        "source_index": 2880860,
+        "state": "ON"
+      },
+      {
+        "source_index": 2880919,
+        "state": "OFF"
+      }
+    ],
+    "true_event_end_checks": [
+      {
+        "true_start_index": 2880860,
+        "true_end_exclusive": 2880919,
+        "first_off_at_or_after_true_end": 2880919,
+        "end_delay_seconds": 0,
+        "off_seconds_inside_true_on": 0
+      }
+    ],
+    "runtime_state_parity": true
+  }
+]

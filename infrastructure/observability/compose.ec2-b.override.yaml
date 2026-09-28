@@ -1,0 +1,7 @@
+services:
+  realtime-analysis-service:
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8000
+    ports:
+      - "${EC2_B_PRIVATE_IP:?Set EC2_B_PRIVATE_IP}:8000:8000"

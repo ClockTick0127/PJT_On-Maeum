@@ -1,6 +1,7 @@
-"""수신 검증 — power-raw 토픽을 N초간 소비해서 가구별 수신 건수/속도를 출력."""
+"""수신 검증 — 원천 토픽을 N초간 소비해서 가구별 수신 건수/속도를 출력."""
 import argparse
 import json
+import os
 import time
 from collections import Counter
 
@@ -10,6 +11,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--bootstrap", default="localhost:9092")
     ap.add_argument("--seconds", type=int, default=10)
+    ap.add_argument("--topic", default=os.getenv("KAFKA_TOPIC", "power.raw.v1"))
     args = ap.parse_args()
 
     c = Consumer({
@@ -17,7 +19,7 @@ if __name__ == "__main__":
         "group.id": f"check-{int(time.time())}",
         "auto.offset.reset": "latest",
     })
-    c.subscribe(["power-raw"])
+    c.subscribe([args.topic])
 
     counts = Counter()
     partitions = Counter()

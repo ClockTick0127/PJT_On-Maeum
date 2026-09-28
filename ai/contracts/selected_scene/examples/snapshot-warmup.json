@@ -1,0 +1,87 @@
+{
+  "schema_version": 2,
+  "scope": "selected_scene",
+  "snapshot_id": "46192bdb-b091-5c29-b9a5-8a8eb4b4cbf8",
+  "household_id": "r3-kettle",
+  "run_id": "r3-kettle-e2e-20260921",
+  "profile_id": "r2-scene-kettle-008b808cf17505534886",
+  "source_index": 2490417,
+  "observed_at": "2026-09-21T10:00:00+09:00",
+  "published_at": "2026-09-21T02:09:01.473547+00:00",
+  "target_appliance": "KETTLE",
+  "ready": false,
+  "transition": null,
+  "measurement": {
+    "active_power": 849.7509765625,
+    "reactive_power": 2.743666648864746,
+    "power_factor": 1.0,
+    "current": 3.7269999980926514
+  },
+  "source": {
+    "topic": "power.scene.v2",
+    "partition": 0,
+    "offset": 0
+  },
+  "runtime": {
+    "profile_id": "r2-scene-kettle-008b808cf17505534886",
+    "checkpoint_sha256": "df8fcc82c58310d29b2360df233a9c53db1b340972659202bf423ede8cf1d267",
+    "model_code_sha256": "44fa5d3e3c8cf9e7b61e5745176b1a6a8b94c3b0b990bfe181feef4d5c4638f1",
+    "normalization_sha256": "6ad324c32468c05c95a705e435b64a27a1a233f1356fd210d6951dd379627caf",
+    "torch_version": "2.11.0+cpu",
+    "device": "cpu",
+    "dtype": "float32",
+    "batch_size": 1,
+    "input_shape": [
+      1,
+      255,
+      4
+    ],
+    "reference_device": "NVIDIA H200 NVL",
+    "reference_dtype": "BF16",
+    "reference_parity_verified": false
+  },
+  "appliances": [
+    {
+      "appliance_type": "KETTLE",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    },
+    {
+      "appliance_type": "INDUCTION",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    },
+    {
+      "appliance_type": "IRON",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    },
+    {
+      "appliance_type": "MICROWAVE",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    },
+    {
+      "appliance_type": "HAIR_DRYER",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    },
+    {
+      "appliance_type": "VACUUM_CLEANER",
+      "inferred": false,
+      "probability": null,
+      "state": "UNKNOWN",
+      "is_on": null
+    }
+  ]
+}

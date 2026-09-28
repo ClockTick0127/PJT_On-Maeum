@@ -20,11 +20,11 @@ env를 읽는 시점이 다르다는 이유만으로 파일 분리가 기술적�
 
 | 실행 대상 | 서비스 |
 | --- | --- |
-| 로컬 | 개발에 필요한 PostgreSQL, Kafka, Mosquitto, Bridge, Keycloak, Redis, Backend. Frontend는 Vite 개발 서버 또는 별도 컨테이너로 실행 |
-| EC2-A | Frontend/Nginx, API Gateway, IoT Device Service, Monitoring Service, Keycloak, Mosquitto, Redis |
-| EC2-B | PostgreSQL, Kafka, MQTT–Kafka Bridge |
+| 로컬 | 개발에 필요한 PostgreSQL, Kafka, Mosquitto, Bridge, Keycloak, Redis, Backend, 실시간 분석 서비스. Frontend는 Vite 개발 서버 또는 별도 컨테이너로 실행 |
+| EC2-A | Frontend/Nginx, API Gateway, IoT Device Service, Monitoring Service, Keycloak, Mosquitto, Redis, Prometheus, Grafana, Blackbox Exporter |
+| EC2-B | PostgreSQL, Kafka, 실시간 분석·집계 서비스, MQTT–Kafka Bridge, HDFS NameNode/DataNode, Bronze Loader, node-exporter |
 
-첫 스켈레톤 배포에서는 Spark, Flink, S3 Archive Sink, AI 학습·추론 서비스는 포함하지 않는다. 기존 HDFS 작업은 별도 실험용으로 보존한다.
+운영 첫 스켈레톤 배포에서는 Spark, Flink, S3 Archive Sink는 포함하지 않는다. `realtime-analysis-service`는 로컬 Compose와 EC2-B Compose에 포함하며, 같은 Compose의 Kafka(`kafka:19092`)와 PostgreSQL(`analysis_db`)에 연결한다. HDFS와 Bronze Loader는 EC2-B 기본 Compose에, 관측 스택은 EC2-A 기본 Compose에 포함한다.
 
 ## 3. 저장소 폴더 구조
 
@@ -109,7 +109,7 @@ Frontend/Nginx는 첫 배포에서는 프론트 정적 파일을 포함한 Nginx
 | `mqtt/simulator/` | 센서를 대신하는 MQTT 발행 도구 | 개발·시연 시 명시적으로 실행, 운영 상시 실행 대상에서 제외 |
 | `mqtt-kafka-bridge/` | MQTT 수신 후 Kafka에 전달하는 코드 | 로컬은 소스 빌드, 운영은 Jenkins 이미지 사용 |
 | `kafka/replay/` | Kafka에 데이터 재생 및 수신 확인 | 검증 도구로 유지. Kafka 서버 자체의 실행 정의가 아님 |
-| `hdfs/` | HDFS와 Kafka→HDFS 적재 실험 | 기본 로컬·운영 배포에서 제외하고 필요할 때 별도 실행 |
+| `hdfs/` | 독립 HDFS 실험 구성 | 로컬 실험용으로 유지. 운영 HDFS는 EC2-B 기본 Compose 사용 |
 | `backend/*/` | Spring 서비스 코드와 Dockerfile | 기존 위치에서 개발. 새 Compose가 해당 소스 또는 이미지를 참조 |
 
 폴더가 존재한다고 자동으로 실행되지는 않는다. Compose의 `services`에 등록한 서비스가 실행 대상이다. 코드나 SQL을 로컬용·운영용으로 복제하지 않는다.
@@ -125,6 +125,7 @@ Frontend/Nginx는 첫 배포에서는 프론트 정적 파일을 포함한 Nginx
 | Backend→DB | 같은 Compose의 `postgres:5432` | EC2-B 사설 주소의 PostgreSQL |
 | Bridge→MQTT | 같은 Compose의 `mosquitto` | EC2-A의 내부 DNS 또는 사설 주소 |
 | Bridge→Kafka | `kafka:19092` | 같은 EC2-B Compose의 `kafka:19092` |
+| 분석 서비스→Kafka/DB | `kafka:19092`, `postgres:5432` | 같은 EC2-B Compose의 `kafka:19092`, `postgres:5432` |
 | 외부 공개 포트 | IDE·디버깅에 필요한 포트 | 사용자 진입 포트와 서버 간 통신 포트만 |
 | Mosquitto 설정 | 로컬 설정·로컬 계정 | 운영 TLS 설정·운영 계정·인증서 |
 
@@ -181,7 +182,7 @@ services:
 | `ec2-a-runtime-env` | EC2-A의 `/opt/nilm/.env` | Compose 설정 해석 및 컨테이너 생성 시점 |
 | `ec2-b-runtime-env` | EC2-B의 `/opt/nilm/.env` | Compose 설정 해석 및 컨테이너 생성 시점 |
 
-`frontend-build.env`, `ec2-a-runtime.env`, `ec2-b-runtime.env`처럼 파일 이름을 구분해 준비하더라도 서버에는 각 운영 파일을 `.env`라는 이름으로 저장할 수 있다. 서로 다른 서버이므로 충돌하지 않는다. AI 설정은 실제 배포할 AI 서비스가 생길 때 추가한다.
+`frontend-build.env`, `ec2-a-runtime.env`, `ec2-b-runtime.env`처럼 파일 이름을 구분해 준비하더라도 서버에는 각 운영 파일을 `.env`라는 이름으로 저장할 수 있다. 서로 다른 서버이므로 충돌하지 않는다. 분석 서비스 운영 설정(`ANALYSIS_*`)은 `ec2-b-runtime-env`에 둔다. 모두 기본값이 있으므로 비어 있어도 실행된다.
 
 ```text
 Jenkins Credential
@@ -328,6 +329,7 @@ PostgreSQL 초기화 SQL은 빈 데이터 디렉터리로 최초 초기화할 �
   → B: Kafka 토픽 초기화
   → A: Mosquitto·Redis·Keycloak 실행 및 인증 초기 구성 확인
   → A: Backend·Frontend/Nginx 실행 및 요청 확인
+  → B: 실시간 분석 서비스 실행
   → B: Bridge 실행
   → MQTT → Bridge → Kafka 전달 확인
 ```

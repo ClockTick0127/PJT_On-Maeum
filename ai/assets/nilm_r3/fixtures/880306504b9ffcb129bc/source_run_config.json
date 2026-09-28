@@ -1,0 +1,19 @@
+{
+  "model_ref": "/home/j-j15d201/nilm/maintenance/r2_demo_20260919/candidates/candidate_880306504b9ffcb129bc/model_ref.json",
+  "panel": "/home/j-j15d201/nilm/maintenance/r2_demo_20260919/candidates/candidate_880306504b9ffcb129bc/panel.csv",
+  "panel_sha256": "b302175d087af2071d839685c39f4be53ee6bcaa4db50728d488a0cd5343c2cf",
+  "output": "/home/j-j15d201/nilm/maintenance/r2_demo_20260919/candidates/candidate_880306504b9ffcb129bc/cold_1",
+  "run_id": "880306504b9ffcb129bc_cold_1",
+  "device": 1,
+  "simulator_source": "/home/j-j15d201/nilm/maintenance/r2_demo_20260919/simulator_source",
+  "publisher_sha256": "98558f4a108c0fdf6ca0fdf5fbf6fb3e4ee3370a82ffa95bf7f7fc12e801aa5e",
+  "threshold": {
+    "id": 104,
+    "on": 0.6,
+    "off": 0.6,
+    "confirm": 1
+  },
+  "house": "H063",
+  "source_t0": "2023-10-13 00:00:00",
+  "virtual_t0": "2026-09-19T00:00:00+09:00"
+}

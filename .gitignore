@@ -1,4 +1,6 @@
 # Created by https://www.toptal.com/developers/gitignore/api/react,visualstudiocode,java,intellij,python,spark,apachehadoop
+/release.json
+/release.json.tmp
 # Edit at https://www.toptal.com/developers/gitignore?templates=react,visualstudiocode,java,intellij,python,spark,apachehadoop
 
 ### ApacheHadoop ###
@@ -316,7 +318,7 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+.idea/
 
 ### Python Patch ###
 # Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
@@ -402,6 +404,8 @@ python/test_coverage/coverage_data
 python/test_coverage/htmlcov
 python/pyspark/python
 reports/
+!backend/monitoring-service/src/main/resources/templates/reports/
+!backend/monitoring-service/src/main/resources/templates/reports/**
 scalastyle-on-compile.generated.xml
 scalastyle-output.xml
 scalastyle.txt
@@ -485,8 +489,20 @@ mqtt_tools/config/passwd
 
 # Deployment secrets and generated files
 infrastructure/**/passwd
+# iot-device-service가 device_acl 테이블에서 생성하는 파생물.
+# 커밋하면 특정 개발자의 로컬 기기 목록이 브로커의 실제 접근 권한을 결정하게 된다.
+infrastructure/**/acl.device
 infrastructure/**/certs/
 *.env
 !*.env.example
 !**/.env.example
 .deployment/
+
+**/bin/
+bin/
+
+# Local AI consumer performance reports
+ai/realtime-analysis-service/load-test-results/
+
+# Generated experiment measurements (bind-mounted into the batch container)
+/experiments/

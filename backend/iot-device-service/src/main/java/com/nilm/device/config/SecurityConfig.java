@@ -3,7 +3,6 @@ package com.nilm.device.config;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -12,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
@@ -45,7 +43,16 @@ public class SecurityConfig {
                                 "/actuator/info",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                // 가입·로그인·토큰 갱신은 토큰이 없는 상태에서 호출된다
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                // 가입 폼의 중복 확인 — 아직 계정이 없는 단계다
+                                "/api/auth/check-email",
+                                // 만료된 access token으로도 로그아웃은 되어야 한다.
+                                // 폐기 대상은 본문의 refresh token이므로 남의 세션을 끊을 수 없다.
+                                "/api/auth/logout"
                         ).permitAll()
                         .requestMatchers("/api/devices/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

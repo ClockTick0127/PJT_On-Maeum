@@ -1,0 +1,116 @@
+[
+  {
+    "appliance": "kettle",
+    "house": "H046",
+    "family": "TCN",
+    "householdId": "r3-kettle",
+    "runId": "r3-kettle-20260921-full",
+    "profileId": "r2-scene-kettle-008b808cf17505534886",
+    "firstIndex": 2490417,
+    "clipIndex": 2490671,
+    "lastIndex": 2491008,
+    "threshold": {
+      "id": 189,
+      "on": 0.99,
+      "off": 0.99,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.008242905139923096
+  },
+  {
+    "appliance": "induction",
+    "house": "H027",
+    "family": "LSTM",
+    "householdId": "r3-induction",
+    "runId": "r3-induction-20260921-full",
+    "profileId": "r2-scene-induction-1577c4d7da20156f6e36",
+    "firstIndex": 2312122,
+    "clipIndex": 2312376,
+    "lastIndex": 2312706,
+    "threshold": {
+      "id": 170,
+      "on": 0.95,
+      "off": 0.95,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.0014494061470031738
+  },
+  {
+    "appliance": "iron",
+    "house": "H027",
+    "family": "LSTM",
+    "householdId": "r3-iron",
+    "runId": "r3-iron-20260921-full",
+    "profileId": "r2-scene-iron-0f1d8112a807d2a86d67",
+    "firstIndex": 1234274,
+    "clipIndex": 1234528,
+    "lastIndex": 1234864,
+    "threshold": {
+      "id": 152,
+      "on": 0.9,
+      "off": 0.9,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.0012079179286956787
+  },
+  {
+    "appliance": "microwave",
+    "house": "H063",
+    "family": "TCN",
+    "householdId": "r3-microwave",
+    "runId": "r3-microwave-20260921-full",
+    "profileId": "r2-scene-microwave-53633b5dea8344e55814",
+    "firstIndex": 1198185,
+    "clipIndex": 1198439,
+    "lastIndex": 1199009,
+    "threshold": {
+      "id": 150,
+      "on": 0.9,
+      "off": 0.7,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.013307571411132812
+  },
+  {
+    "appliance": "hair_dryer",
+    "house": "H059",
+    "family": "TCN",
+    "householdId": "r3-hair_dryer",
+    "runId": "r3-hair_dryer-20260921-full",
+    "profileId": "r2-scene-hair_dryer-08a106027f7736638901",
+    "firstIndex": 1507611,
+    "clipIndex": 1507865,
+    "lastIndex": 1508371,
+    "threshold": {
+      "id": 169,
+      "on": 0.95,
+      "off": 0.9,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.0037301182746887207
+  },
+  {
+    "appliance": "vacuum_cleaner",
+    "house": "H063",
+    "family": "Transformer",
+    "householdId": "r3-vacuum_cleaner",
+    "runId": "r3-vacuum_cleaner-20260921-full",
+    "profileId": "r2-scene-vacuum_cleaner-880306504b9ffcb129bc",
+    "firstIndex": 2880486,
+    "clipIndex": 2880740,
+    "lastIndex": 2881098,
+    "threshold": {
+      "id": 104,
+      "on": 0.6,
+      "off": 0.6,
+      "confirm": 1
+    },
+    "stateParity": true,
+    "maxScoreDifference": 0.00831073522567749
+  }
+]

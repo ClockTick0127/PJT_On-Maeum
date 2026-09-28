@@ -8,21 +8,48 @@ version = "0.1.0"
 description = "Kafka-based realtime power analysis service"
 requires-python = ">=3.11"
 dependencies = [
+    "alembic>=1.13,<2",
     "confluent-kafka==2.6.0",
     "pydantic>=2,<3",
     "pydantic-settings>=2,<3",
+    "prometheus-client>=0.21,<1",
+    "psycopg[binary]>=3.2,<4",
+    "SQLAlchemy>=2.0,<3",
     "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<9"]
+demo = ["aiomqtt>=2,<3"]
+inference = [
+    "torch==2.11.0",
+    "numpy>=1.26,<3",
+]
+dev = [
+    "aiomqtt>=2,<3",
+    "pytest>=8,<9",
+    "pytest-cov>=6,<7",
+]
 
 [project.scripts]
 realtime-analysis = "realtime_analysis.__main__:main"
+realtime-model-replay = "realtime_analysis.model_replay:main"
+realtime-scene-replay = "realtime_analysis.scene_replay:main"
+realtime-fixture-replay = "realtime_analysis.fixture_publisher:main"
+
+[tool.setuptools.package-data]
+"realtime_analysis.real_models" = ["profiles.lock.json"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+# "."은 tests가 tools/ 패키지를 임포트하기 위한 것이다. pytest가 rootdir를 암묵적으로
+# 올려 주는 데 기대지 않고 명시한다.
+pythonpath = ["src", "."]
 testpaths = ["tests"]
+markers = [
+    "postgres: requires TEST_DATABASE_URL pointing at a disposable PostgreSQL database",
+]
+
+[tool.coverage.run]
+relative_files = true

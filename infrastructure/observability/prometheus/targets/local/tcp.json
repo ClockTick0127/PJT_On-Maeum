@@ -1,0 +1,38 @@
+[
+  {
+    "targets": [
+      "kafka:19092"
+    ],
+    "labels": {
+      "service": "kafka",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "postgres:5432"
+    ],
+    "labels": {
+      "service": "postgres",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "redis:6379"
+    ],
+    "labels": {
+      "service": "redis",
+      "environment": "local"
+    }
+  },
+  {
+    "targets": [
+      "mosquitto:1883"
+    ],
+    "labels": {
+      "service": "mosquitto",
+      "environment": "local"
+    }
+  }
+]

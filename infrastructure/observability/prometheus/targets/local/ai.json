@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [
+      "aggregation-service:8000"
+    ],
+    "labels": {
+      "service": "aggregation-service",
+      "environment": "local"
+    }
+  }
+]

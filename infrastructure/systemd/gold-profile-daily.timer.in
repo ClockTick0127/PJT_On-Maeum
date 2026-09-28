@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule the NILM daily profile pipeline
+
+[Timer]
+OnCalendar=@@ON_CALENDAR@@
+Persistent=true
+AccuracySec=1min
+Unit=gold-profile-daily.service
+
+[Install]
+WantedBy=timers.target

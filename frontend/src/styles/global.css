@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2") format("woff2"); font-weight: 100; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2") format("woff2"); font-weight: 200; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2") format("woff2"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Pretendard"; src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+
+@theme {
+  --font-sans: "Pretendard", system-ui, sans-serif;
+  --color-brand-50: #fff8f2;
+  --color-brand-100: #ffead9;
+  --color-brand-200: #ffd5b3;
+  --color-brand-300: #ffb67e;
+  --color-brand-400: #fb934f;
+  --color-brand-500: #f37929;
+  --color-brand-600: #e86616;
+  --color-brand-700: #c64b0a;
+  --color-brand-800: #b9420b;
+  --color-brand-900: #96360d;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    min-width: 320px;
+    scroll-behavior: smooth;
+  }
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: #f5f5f4;
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+  button,
+  a,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid #c64b0a;
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

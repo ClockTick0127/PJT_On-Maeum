@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aggregation-service"
+version = "0.1.0"
+description = "Daily activity aggregation and routine baseline service"
+requires-python = ">=3.11"
+dependencies = [
+    "realtime-analysis-service==0.1.0",
+    "hdfs>=2.7,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-cov>=6,<7",
+]
+
+[project.scripts]
+aggregation-service = "aggregation_service.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+relative_files = true

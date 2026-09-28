@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     ports:
       - "9870:9870"   # 웹 UI (파일 브라우저·DataNode 상태)
-      - "9000:9000"   # HDFS RPC (Spark 등 클라이언트 접속)
+      - "9010:9000"   # HDFS RPC (호스트 노출용. 9000은 SonarQube가 사용하므로 9010으로 매핑)
     environment:
       CLUSTER_NAME: nilm
       CORE_CONF_fs_defaultFS: hdfs://namenode:9000
@@ -37,16 +37,19 @@ services:
     depends_on:
       - namenode
 
-  loader:
-    build: ./loader
-    container_name: nilm-hdfs-loader
+  bronze-loader:
+    build: ../../collection/bronze-loader   # 원본 적재기 코드는 저장소 collection/에 둔다
+    container_name: nilm-bronze-loader
     restart: unless-stopped
     environment:
       KAFKA_BOOTSTRAP: kafka:19092
-      KAFKA_TOPIC: power-raw        # 토픽명 통일 결정 시 여기만 변경
+      KAFKA_TOPIC: power.raw.v1     # 브릿지·B Compose와 통일 (설계안 0914)
       HDFS_URL: http://namenode:9870
-      HDFS_BASE: /data/stream
-      FLUSH_SECS: 60
+      BRONZE_BASE: /nilm/bronze/power
+      QUARANTINE_BASE: /nilm/quarantine/power
+      MANIFEST_BASE: /nilm/manifests/job=bronze-loader
+      FLUSH_SECS: 300               # 5분 또는 50,000건 중 먼저 도달 시 플러시
+      MAX_BUFFER: 50000
     depends_on:
       - namenode
       - datanode

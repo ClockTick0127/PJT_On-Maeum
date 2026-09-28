@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [
+      "realtime-analysis-service:8000"
+    ],
+    "labels": {
+      "service": "realtime-analysis-service",
+      "environment": "ec2-b"
+    }
+  }
+]

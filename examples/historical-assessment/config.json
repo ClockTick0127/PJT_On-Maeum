@@ -1,0 +1,10 @@
+{
+  "householdId": "H001",
+  "start": "2026-09-20T00:00:00+09:00",
+  "end": "2026-09-20T00:02:00+09:00",
+  "stepSeconds": 60,
+  "snapshots": "snapshots.jsonl",
+  "profiles": "profiles.json",
+  "policy": "policy.json",
+  "awayPeriods": []
+}

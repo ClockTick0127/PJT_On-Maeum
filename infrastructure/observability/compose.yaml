@@ -1,0 +1,65 @@
+name: nilm-observability
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=5GB
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ${OBSERVABILITY_ROOT:-.}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ${OBSERVABILITY_ROOT:-.}/prometheus/targets/${TARGET_ENV:-ec2-a}:/etc/prometheus/targets:ro
+      - ${OBSERVABILITY_ROOT:-.}/prometheus/resources-disabled:/etc/prometheus/resources:ro
+      - ${OBSERVABILITY_ROOT:-.}/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - "ec2-b.internal:${EC2_B_PRIVATE_IP:?Set EC2_B_PRIVATE_IP}"
+    networks: [observability, application]
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
+      GRAFANA_REPORTING_DB_HOST: ${GRAFANA_REPORTING_DB_HOST:-localhost:5432}
+      GRAFANA_REPORTING_DB_NAME: ${GRAFANA_REPORTING_DB_NAME:-monitoring_db}
+      GRAFANA_REPORTING_DB_USER: ${GRAFANA_REPORTING_DB_USER:-grafana_reporting}
+      GRAFANA_REPORTING_DB_PASSWORD: ${GRAFANA_REPORTING_DB_PASSWORD:-}
+      GRAFANA_REPORTING_DB_SSLMODE: ${GRAFANA_REPORTING_DB_SSLMODE:-require}
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - ${OBSERVABILITY_ROOT:-.}/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ${OBSERVABILITY_ROOT:-.}/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks: [observability]
+    depends_on: [prometheus]
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.27.0
+    restart: unless-stopped
+    command: ["--config.file=/etc/blackbox/blackbox.yml"]
+    volumes:
+      - ${OBSERVABILITY_ROOT:-.}/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    extra_hosts:
+      - "ec2-b.internal:${EC2_B_PRIVATE_IP:?Set EC2_B_PRIVATE_IP}"
+    networks: [observability, application]
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  observability:
+  application:
+    external: true
+    name: ${APPLICATION_NETWORK:-nilm-a_default}

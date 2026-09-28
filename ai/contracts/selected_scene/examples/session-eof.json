@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "scope": "selected_scene",
+  "event_id": "dc90009b-fe66-56f6-bede-31a14aeb879d",
+  "session_id": "52b8b9d7-8732-5400-846a-d78ee3a4049c",
+  "revision": 1,
+  "household_id": "r3-contract-test",
+  "run_id": "contract-test-run",
+  "profile_id": "r2-scene-kettle-008b808cf17505534886",
+  "appliance_type": "KETTLE",
+  "source_index": 2490791,
+  "status": "INTERRUPTED",
+  "start_known": true,
+  "started_at": "2026-09-21T12:00:00+09:00",
+  "observed_start_at": "2026-09-21T12:00:00+09:00",
+  "observed_until_at": "2026-09-21T12:00:00+09:00",
+  "ended_at": null,
+  "end_reason": "EOF",
+  "observed_on_seconds": 0
+}

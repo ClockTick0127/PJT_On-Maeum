@@ -1,0 +1,17 @@
+[Unit]
+Description=NILM daily Silver, usage and Gold profile pipeline
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/nilm
+Environment=NILM_ROOT=/opt/nilm
+EnvironmentFile=-/opt/nilm/gold-daily.env
+ExecStart=/opt/nilm/bin/run-gold-daily.sh
+# 11 means another writer owns the date; 12 means the durable outbox was left
+# to the resident publisher. Both are observable non-zero CLI outcomes but are
+# successful scheduler hand-offs.
+SuccessExitStatus=11 12
+TimeoutStartSec=infinity

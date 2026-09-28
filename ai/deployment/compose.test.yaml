@@ -1,0 +1,102 @@
+# Disposable AI transport test. No production services or host ports.
+name: nilm-ai-acceptance
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: analysis_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: local-disposable-only
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U test -d analysis_test']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  kafka:
+    image: apache/kafka:3.9.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    healthcheck:
+      test: [CMD-SHELL, '/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null']
+      interval: 5s
+      timeout: 10s
+      retries: 30
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ${TEST_CERT_DIR:?generate temporary TLS files}:/mosquitto/config:ro
+  bridge:
+    build: ../../infrastructure/mqtt-kafka-bridge
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: 8883
+      MQTT_USER: ''
+      MQTT_TLS_ENABLED: 'true'
+      MQTT_CA_FILE: /certs/ca.crt
+      MQTT_TOPIC: v1/power/demo/+/main
+      KAFKA_BOOTSTRAP: kafka:9092
+      KAFKA_TOPIC: power.demo.raw.v1
+    volumes:
+      - ${TEST_CERT_DIR}:/certs:ro
+    depends_on:
+      kafka: {condition: service_healthy}
+      mosquitto: {condition: service_started}
+  worker:
+    image: nilm-scene-inference:local
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_NAME: analysis_test
+      DATABASE_USER: test
+      DATABASE_PASSWORD: local-disposable-only
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_INPUT_TOPIC: power.demo.raw.v1
+      KAFKA_GROUP_ID: ai-acceptance-${TEST_APPLIANCE:-kettle}
+      MODEL_APPLIANCE: ${TEST_APPLIANCE:-kettle}
+      MODEL_HOUSEHOLD_ID: ai-acceptance
+      ANALYSIS_RUN_ID: ${TEST_RUN_ID:-acceptance-kettle}
+      SCENE_EVENTS_ENABLED: 'true'
+      SCENE_TEST_HOUSEHOLD_ID: ai-acceptance
+      SCENE_RISK_THRESHOLD_SECONDS: 10
+    depends_on:
+      postgres: {condition: service_healthy}
+      kafka: {condition: service_healthy}
+  fixture:
+    image: nilm-scene-fixture:local
+    profiles: [replay]
+    command: [--appliance, '${TEST_APPLIANCE:-kettle}', --household, ai-acceptance,
+              --run-id, '${TEST_RUN_ID:-acceptance-kettle}', --start-time, '2026-09-21T00:00:00+00:00',
+              --mqtt-host, mosquitto, --ca-file, /certs/ca.crt,
+              --interval, '${TEST_INTERVAL:-0}', --output, '/reports/${TEST_RUN_ID:-acceptance-kettle}']
+    volumes:
+      - ${TEST_CERT_DIR}:/certs:ro
+      - ${TEST_REPORT_DIR:?set disposable output directory}:/reports
+  verifier:
+    image: nilm-scene-inference:local
+    profiles: [verify]
+    entrypoint: [python, -m, realtime_analysis.scene_broker_check]
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_NAME: analysis_test
+      DATABASE_USER: test
+      DATABASE_PASSWORD: local-disposable-only
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_INPUT_TOPIC: power.demo.raw.v1
+      KAFKA_GROUP_ID: acceptance-verifier
+      ANALYSIS_RUN_ID: acceptance-verifier
+    command: [--asset-root, /test-assets, --appliance, '${TEST_APPLIANCE:-kettle}',
+              --household, ai-acceptance, --run-id, '${TEST_RUN_ID:-acceptance-kettle}',
+              --start-time, '2026-09-21T00:00:00+00:00', --output, '/reports/${TEST_RUN_ID:-acceptance-kettle}-readback']
+    volumes:
+      - ../assets/nilm_r3:/test-assets:ro
+      - ${TEST_REPORT_DIR}:/reports

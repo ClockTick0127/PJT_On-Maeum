@@ -1,5 +1,6 @@
 passwd
 venv
+ca.crt
 # Created by https://www.toptal.com/developers/gitignore/api/python,windows,django,vue,java,react
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,windows,django,vue,java,react
 
